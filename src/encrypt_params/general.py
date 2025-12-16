@@ -4,7 +4,7 @@ from requests import (
 )
 from rich import print
 
-from ..config import USER_AGENT, RED
+from ..config import USER_AGENT, Colors
 from ..tool import retry
 
 
@@ -34,4 +34,4 @@ def extract_value(response_headers: dict, key: str):
             value = set_cookie.split('; ')[0].split('=', 1)
             return {value[0]: value[1]}
         except IndexError:
-            print(f'[{RED}]获取 {key} 参数失败！')
+            print(f'[{Colors.RED}]获取 {key} 参数失败！')

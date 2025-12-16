@@ -1,62 +1,21 @@
 from re import finditer
 from rich import print
+from json import load, dump
 
-from .constant import CYAN, GREEN
-from .settings import Settings
+from .settings import Colors, PROJECT_ROOT, ENCODE
 from ..encrypt_params import MsToken, TtWid
 
 
 class Cookie:
-    def __init__(self, settings: Settings) -> None:
-        self.settings = settings
+    def __init__(self):
+        self.cookies = {}
 
-    def input_save(self):
-        '''输入 cookie，转为 dict，保存到 Settings.cookies 属性中，并存入配置文件'''
-        while not (cookie := input(f'请粘贴 Cookie 内容: ')):
-            continue
-        self.settings.cookies = self._generate_dict(cookie)
-        self._check()
-        self._save()
-
-    def update(self):
-        '''更新 Settings.cookies 与 Settings.headers'''
-        if self.settings.cookies:
-            self._add_cookies()
-            self.settings.headers['Cookie'] = self._generate_str(self.settings.cookies)
-
-    def _check(self):
-        '''检查 Settings.cookies 是否已登录；删除空键值对'''
-        if not self.settings.cookies['sessionid_ss']:
-            print(f'[{CYAN}]当前 Cookie 未登录')
-        else:
-            print(f'[{CYAN}]当前 Cookie 已登录')
-
-        keys_to_remove = [key for key, value in self.settings.cookies.items() if value is None]
-        for key in keys_to_remove:
-            del self.settings.cookies[key]
-
-    def _save(self):
-        '''将 Settings.cookies 存储到 settings.json'''
-        self.settings.settings['cookies'] = self.settings.cookies
-        self.settings.save()
-        print(f'[{GREEN}]写入 Cookie 成功！')
-
-    def _add_cookies(self):
-        parameters = (MsToken.get_real_ms_token(), TtWid.get_tt_wid())
-        for i in parameters:
-            if isinstance(i, dict):
-                self.settings.cookies |= i
+    def load_cookies(self):
+        with open(PROJECT_ROOT / 'cookies.json', 'r', encoding=ENCODE) as f:
+            self.cookies = load(f)
 
     @staticmethod
-    def _generate_str(cookies: dict):
-        '''根据 dict 生成 str'''
-        if cookies:
-            result = [f'{k}={v}' for k, v in cookies.items()]
-            return '; '.join(result)
-
-    @staticmethod
-    def _generate_dict(cookie: str):
-        '''根据 str 生成 dict'''
+    def _generate_dict(cookie: str) -> dict:
         cookies_key = {
             'passport_csrf_token',
             'passport_csrf_token_default',
@@ -123,3 +82,35 @@ class Cookie:
             if key in cookies_key:
                 cookies[key] = value
         return cookies
+
+    def _check(self) -> None:
+        if not self.cookies['sessionid_ss']:
+            print(f'[{Colors.CYAN}]当前 Cookie 未登录')
+        else:
+            print(f'[{Colors.CYAN}]当前 Cookie 已登录')
+
+        keys_to_remove = [key for key, value in self.cookies.items() if value is None]
+        for key in keys_to_remove:
+            del self.cookies[key]
+
+    def _save_json(self) -> None:
+        with open(PROJECT_ROOT / 'cookies.json', 'w', encoding=ENCODE) as f:
+            dump(self.cookies, f, ensure_ascii=False, indent=4)
+        print(f'[{Colors.GREEN}]写入 Cookie 成功！')
+
+    def input_save(self) -> None:
+        while not (cookie := input(f'请粘贴 Cookie 内容: ')):
+            continue
+        self.cookies = self._generate_dict(cookie)
+        self._check()
+        self._save_json()
+
+    def update(self) -> None:
+        parameters = (MsToken.get_real_ms_token(), TtWid.get_tt_wid())
+        for i in parameters:
+            if isinstance(i, dict):
+                self.cookies |= i
+
+    def _generate_str(self) -> str:
+        result = [f'{k}={v}' for k, v in self.cookies.items()]
+        return '; '.join(result)

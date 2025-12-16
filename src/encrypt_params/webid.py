@@ -3,7 +3,7 @@ from json import dumps
 from rich import print
 
 from .general import send_post
-from ..config import USER_AGENT, RED
+from ..config import USER_AGENT, Colors
 
 
 class WebID:
@@ -24,4 +24,4 @@ class WebID:
                 return response.json().get('web_id')
             raise KeyError
         except (exceptions.JSONDecodeError, KeyError):
-            print(f'[{RED}]获取 webid 参数失败！')
+            print(f'[{Colors.RED}]获取 webid 参数失败！')
