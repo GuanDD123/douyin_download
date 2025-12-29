@@ -1,0 +1,6 @@
+rich==14.1.0
+yarl==1.22.0
+urllib3==2.5.0
+requests==2.32.5
+aiohttp==3.13.0
+py-mini-racer==0.6.0
