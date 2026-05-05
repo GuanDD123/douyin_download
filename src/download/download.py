@@ -52,6 +52,8 @@ class Download:
             name = cleaner.filter_name(settings.split.join(
                 item[key] for key in settings.name_format))
             format = item.get('format') # 图片任务解析时没有提取字段，在下面直接设置为 .jpeg
+            if format == '.dash':
+                format = '.mp4'
             if (type := item['type']) == '图集':
                 for index, info in enumerate(item['downloads'], start=1):
                     if (task := Download._generate_task_image(
