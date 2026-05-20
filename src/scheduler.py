@@ -5,9 +5,9 @@ import subprocess
 from time import sleep
 from random import randint
 
-from .config import Account, load_settings, Cookie, Colors, PROJECT_ROOT
-from .tool import Cleaner
-from .download import Acquire, Download, Parse
+from src.config import Account, load_settings, Cookie, Colors, PROJECT_ROOT
+from src.tool import Cleaner
+from src.download import Acquire, Download, Parse
 
 
 class Scheduler:
@@ -74,3 +74,63 @@ class Scheduler:
                 self.cookie.load_cookies()
                 self._deal_accounts()
         print(f'[{Colors.WHITE}]程序结束运行')
+
+
+
+
+from rich.prompt import Prompt
+from rich import print
+import asyncio
+from prompt_toolkit.shortcuts import choice
+from prompt_toolkit.filters import is_done
+from prompt_toolkit.styles import Style
+from typing import Literal
+
+from src.config.settings import COLORS
+from src.config.cookies import Cookies
+
+
+def run_menu() -> Literal['1', '2', '3', None]:
+    style = Style.from_dict(
+        {
+            "input-selection": "#f5e6e6",
+            "number": "#048282 bold",
+            "frame.border": "#884444",
+            "selected-option": "#df8620 bold",
+        }
+    )
+    result = choice(
+        message='Please select and enter:',
+        options=[
+            ('1', '复制粘贴写入 Cookie'),
+            ('2', '修改配置文件(Linux)'),
+            ('3', '批量下载账号作品(配置文件)'),
+            (None, 'Exit')
+        ],
+        style=style,
+        show_frame=~is_done,
+    )
+    return result
+
+def _xdg_open_config() -> None:
+    if not (filepath := PROJECT_ROOT / 'settings_mine.json').exists():
+        filepath = PROJECT_ROOT / 'settings_default.json'
+    try:
+        subprocess.run(['xdg-open', str(filepath)])
+        subprocess.run(['xdg-open', str(PROJECT_ROOT / '已下载账号信息.json')])
+    except Exception as e:
+        print(f'[{COLORS.RED}]Error occurred while opening files: {e}')
+
+def main() -> None:
+    while (mode := run_menu()):
+        cookies = Cookies()
+        cleaner = Cleaner()
+        if mode == '1':
+            cookies.input_save()
+        elif mode == '2':
+            _xdg_open_config()
+        elif mode == '3':
+            settings = load_settings()
+            cookies.load_cookies()
+            _deal_accounts()
+    print(f'[{Colors.WHITE}]程序结束运行')

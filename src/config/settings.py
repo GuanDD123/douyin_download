@@ -1,15 +1,21 @@
-from json import load
+import json
 from json.decoder import JSONDecodeError
-from re import match
-from datetime import date, timedelta, datetime
+import re
+from datetime import date as Date, datetime as Datetime
+import datetime
 from rich import print
 from dataclasses import dataclass
 from pathlib import Path
-from os import name as os_name
+import os
 import sys
+from collections.abc import Sequence, Mapping
+from collections import namedtuple
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent
-ENCODE = 'UTF-8-SIG' if os_name == 'nt' else 'UTF-8'
+
+PROJECT_ROOT = Path(__file__).parents[2]
+ENCODE = 'UTF-8-SIG' if os.name == 'nt' else 'UTF-8'
+Colors = namedtuple('Colors', ['WHITE', 'CYAN', 'RED', 'YELLOW', 'GREEN', 'MAGENTA'])
+COLORS = Colors('#aaaaaa', 'bright_cyan', 'bright_red', 'bright_yellow', 'bright_green', 'bright_magenta')
 REFERER = 'https://www.douyin.com/'
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 HEADERS = {'Referer': REFERER, 'User-Agent': USER_AGENT}
@@ -17,70 +23,67 @@ PHONE_USER_AGENT = 'com.ss.android.ugc.trill/494+Mozilla/5.0+(Linux;+Android+12;
 RETRY_ACCOUNT: int = 3
 RETRY_FILE: int = 2
 
-class Colors:
-    WHITE = '#aaaaaa'
-    CYAN = 'bright_cyan'
-    RED = 'bright_red'
-    YELLOW = 'bright_yellow'
-    GREEN = 'bright_green'
-    MAGENTA = 'bright_magenta'
 
-
-@dataclass
+@dataclass(frozen=True, slots=True)
 class Account:
     mark: str
     url: str
     earliest: str
     latest: str
-    sec_user_id: str = None
-    earliest_date: date = date(2016, 9, 20)
-    latest_date: date = date.today() - timedelta(days=1)
-    id: str = None
-    name: str = None
+    sec_user_id: str
+    earliest_date: Date
+    latest_date: Date
 
-    def __post_init__(self):
-        self.sec_user_id = self._extract_sec_user_id()
-        if self.earliest:
-            self.earliest_date = self._generate_date_earliest()
-        if self.latest:
-            self.latest_date = self._generate_date_latest()
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, str]) -> 'Account':
+        mark = data['mark']
+        url = data['url']
+        earliest = data['earliest']
+        latest = data['latest']
+        sec_user_id = cls._extract_sec_user_id(mark, url)
+        earliest_date, latest_date = cls._generate_date(earliest, latest)
+        return cls(mark=mark,
+                   url=url,
+                   earliest=earliest,
+                   latest=latest,
+                   sec_user_id=sec_user_id,
+                   earliest_date=earliest_date,
+                   latest_date=latest_date)
 
-    def _extract_sec_user_id(self) -> str | None:
-        match_url = match(r'https://www\.douyin\.com/user/([A-Za-z0-9_-]+)(\?.*)?', self.url)
+    @staticmethod
+    def _extract_sec_user_id(mark: str, url: str) -> str | None:
+        match_url = re.match(r'https://www\.douyin\.com/user/([A-Za-z0-9_-]+)(\?.*)?', url)
         if match_url:
             return match_url.group(1)
-        print(f'[{Colors.RED}]参数 accounts 中账号 {self.mark} 的 url {self.url} 错误，提取 sec_user_id 失败！')
+        print(f'[{COLORS.RED}]参数 accounts 中账号 {mark} 的 url {url} 错误，提取 sec_user_id 失败！')
         sys.exit()
 
-    def _generate_date_earliest(self) -> date:
+    @staticmethod
+    def _generate_date(earliest: str, latest: str) -> tuple[Date, Date]:
         try:
-            return datetime.strptime(self.earliest, '%Y/%m/%d').date()
+            earliest_date = Datetime.strptime(earliest, '%Y/%m/%d').date()
+            latest_date = Datetime.strptime(latest, '%Y/%m/%d').date()
         except ValueError:
-            print(f'[{Colors.YELLOW}]作品最早发布日期 {self.earliest} 无效')
-            return self.earliest_date
-
-    def _generate_date_latest(self) -> date:
-        try:
-            return datetime.strptime(self.latest, '%Y/%m/%d').date()
-        except ValueError:
-            print(f'[{Colors.YELLOW}]作品最晚发布日期无效 {self.latest}')
-            return self.latest_date
+            print(f'[{COLORS.YELLOW}]作品发布日期 {earliest}, {latest} 无效，使用默认日期')
+            earliest_date = Date(2016, 9, 20)
+            latest_date = Date.today() - datetime.timedelta(days=1)
+        return earliest_date, latest_date
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Settings:
-    accounts: tuple[Account]
-    save_folder: Path = PROJECT_ROOT
-    download_videos: bool = True
-    download_images: bool = False
-    name_format: tuple[str] = ('create_time', 'id', 'type', 'desc')
-    split: str = '-'
-    date_format: str = '%Y-%m-%d'
-    proxy: str = None
-    file_description_max_length: int = 64
-    chunk_size: int = 1024 * 1024
-    timeout: int = 60 * 5
-    concurrency: int = 5
+    accounts: Sequence[Account]
+    save_folder: Path
+    download_videos: bool
+    download_images: bool
+    name_format: Sequence[str]
+    split: str
+    date_format: str
+    proxy: str
+    file_description_max_length: int
+    chunk_size: int
+    timeout: int
+    concurrency: int
 
 
 def load_settings() -> Settings:
@@ -88,18 +91,25 @@ def load_settings() -> Settings:
         filepath = PROJECT_ROOT / 'settings_default.json'
     try:
         with open(filepath, encoding=ENCODE) as f:
-            data = load(f)
+            data = json.load(f)
     except JSONDecodeError:
-        print(f'[{Colors.RED}]配置文件 settings.json 格式错误，请检查 JSON 格式！')
+        print(f'[{COLORS.RED}]配置文件 settings.json 格式错误，请检查 JSON 格式！')
         sys.exit()
 
-    accounts = tuple(Account(**a) for a in data["accounts"])
-    data_without_accounts = {k: v for k, v in data.items() if k != "accounts"}
-    if 'save_folder' in data_without_accounts:
-        data_without_accounts['save_folder'] = Path(data_without_accounts.get('save_folder'))
-    if 'name_format' in data_without_accounts:
-        data_without_accounts['name_format'] = tuple(data_without_accounts.get('name_format'))
-    return Settings(accounts=accounts, **data_without_accounts)
+    accounts = tuple(Account.from_mapping(a) for a in data["accounts"])
+    return Settings(accounts=accounts,
+                    save_folder=Path(data.get('save_folder', PROJECT_ROOT)),
+                    download_videos=data.get('download_videos', True),
+                    download_images=data.get('download_images', True),
+                    name_format=tuple(data.get('name_format', ('create_time', 'id', 'type', 'desc'))),
+                    split=data.get('split', '-'),
+                    date_format=data.get('date_format', '%Y-%m-%d'),
+                    proxy=data.get('proxy'),
+                    file_description_max_length=data.get('file_description_max_length', 64),
+                    chunk_size=data.get('chunk_size', 1024 * 1024),
+                    timeout=data.get('timeout', 60 * 5),
+                    concurrency=data.get('concurrency', 5)
+                    )
 
 
 if __name__ == '__main__':

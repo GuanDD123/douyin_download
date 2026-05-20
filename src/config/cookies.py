@@ -1,21 +1,22 @@
-from re import finditer
+import re
 from rich import print
-from json import load, dump
+import json
 
-from .settings import Colors, PROJECT_ROOT, ENCODE
-from ..encrypt_params import MsToken, TtWid
+from .settings import COLORS, PROJECT_ROOT, ENCODE
+from src.encrypt_params.msToken import MsToken
+from src.encrypt_params.ttWid import TtWid
 
 
-class Cookie:
-    def __init__(self):
+class Cookies:
+    def __init__(self) -> None:
         self.cookies = {}
 
-    def load_cookies(self):
+    def load_cookies(self) -> None:
         with open(PROJECT_ROOT / 'cookies.json', 'r', encoding=ENCODE) as f:
-            self.cookies = load(f)
+            self.cookies = json.load(f)
 
     @staticmethod
-    def _generate_dict(cookie: str) -> dict:
+    def _generate_dict(cookies_str: str) -> dict[str, str]:
         cookies_key = {
             'passport_csrf_token',
             'passport_csrf_token_default',
@@ -75,7 +76,7 @@ class Cookie:
             'tt_scid'
         }
         cookies = {}.fromkeys(cookies_key)
-        matches = finditer(r'(?P<key>[^=;,]+)=(?P<value>[^;,]+)', cookie)
+        matches = re.finditer(r'(?P<key>[^=;,]+)=(?P<value>[^;,]+)', cookies_str)
         for match in matches:
             key = match.group('key').strip()
             value = match.group('value').strip()
@@ -85,9 +86,9 @@ class Cookie:
 
     def _check(self) -> None:
         if not self.cookies['sessionid_ss']:
-            print(f'[{Colors.CYAN}]当前 Cookie 未登录')
+            print(f'[{COLORS.CYAN}]当前 Cookie 未登录')
         else:
-            print(f'[{Colors.CYAN}]当前 Cookie 已登录')
+            print(f'[{COLORS.CYAN}]当前 Cookie 已登录')
 
         keys_to_remove = [key for key, value in self.cookies.items() if value is None]
         for key in keys_to_remove:
@@ -95,13 +96,13 @@ class Cookie:
 
     def _save_json(self) -> None:
         with open(PROJECT_ROOT / 'cookies.json', 'w', encoding=ENCODE) as f:
-            dump(self.cookies, f, ensure_ascii=False, indent=4)
-        print(f'[{Colors.GREEN}]写入 Cookie 成功！')
+            json.dump(self.cookies, f, ensure_ascii=False, indent=4)
+        print(f'[{COLORS.GREEN}]写入 Cookie 成功！')
 
     def input_save(self) -> None:
-        while not (cookie := input(f'请粘贴 Cookie 内容: ')):
+        while not (cookies_str := input(f'请粘贴 Cookie 内容: ')):
             continue
-        self.cookies = self._generate_dict(cookie)
+        self.cookies = self._generate_dict(cookies_str)
         self._check()
         self._save_json()
 
