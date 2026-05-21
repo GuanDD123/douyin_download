@@ -1,11 +1,8 @@
-from requests import (
-    post,
-    exceptions
-)
+from requests import post, exceptions
 from rich import print
 
-from ..config import USER_AGENT, Colors
-from ..tool import retry
+from src.config.constant import USER_AGENT, Colors
+from src.tool.function import retry
 
 
 HEADERS = {'User-Agent': USER_AGENT}

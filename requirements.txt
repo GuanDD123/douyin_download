@@ -1,5 +1,6 @@
 aiohttp==3.13.0
 mini_racer==0.14.1
-Requests==2.33.1
-rich==14.3.3
+prompt_toolkit==3.0.52
+Requests==2.34.2
+rich==15.0.0
 yarl==1.22.0

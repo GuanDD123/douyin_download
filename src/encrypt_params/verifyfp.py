@@ -1,6 +1,7 @@
 from time import time
 from random import random
 
+
 class VerifyFp:
     '''代码参考: https://github.com/Johnserf-Seed/TikTokDownload/blob/main/Util/Cookies.py'''
 

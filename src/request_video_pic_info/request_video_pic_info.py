@@ -1,30 +1,44 @@
-from datetime import date
+from datetime import date as Date
 from urllib.parse import urlencode
-from requests import exceptions, get
-from rich.progress import (
-    BarColumn,
-    Progress,
-    TextColumn,
-    TimeElapsedColumn,
-)
-from random import randint
-from time import sleep
+from requests import Session, exceptions
+from rich.progress import BarColumn, Progress, TextColumn, TimeElapsedColumn
+import random
+import time
 from rich import print
+from collections.abc import Mapping
 
-from ..encrypt_params import get_a_bogus
-from ..tool import retry
-from ..config import Settings, Colors, Cookie, HEADERS
+from src.encrypt_params.js_port import get_a_bogus
+from src.tool.function import retry
+from src.config.constant import Colors, USER_AGENT, REFERER
+from src.config.settings import Account, Settings
+from src.config.cookies import Cookies
+
 
 POST_API = 'https://www.douyin.com/aweme/v1/web/aweme/post/'
 
-class Acquire():
 
-    def __init__(self):
-        self.cursor = 0
-        self.finished = False
+class RequestVideoPicInfo():
+    def __init__(self, settings: Settings, cookies: Cookies, account: Account):
+        self.settings = settings
+        self.cookies = cookies
+        self.account = account
+        self.session = None
+        self.progress: Progress = None
+        self.cursor: int = None
+        self.finished: bool = None
+        self.params: Mapping[str, str] = None
+
+    def __enter__(self):
+        self.session = Session()
+        self.session.headers.update({'User-Agent': USER_AGENT, 'Referer': REFERER})
+        self.session.cookies.update(self.cookies.cookies)
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self.session.close()
 
     @staticmethod
-    def _progress_object():
+    def _progress_object() -> Progress:
         return Progress(
             TextColumn('[progress.description]{task.description}', style=Colors.MAGENTA, justify='left'),
             '•',
@@ -34,39 +48,35 @@ class Acquire():
             transient=True,
         )
 
-    @staticmethod
-    def _deal_url_params(params: dict, cookie: Cookie, number: int = 8):
+    def _deal_url_params(self, number: int = 8) -> None:
         '''添加 msToken、X-Bogus'''
-        if 'msToken' in cookie.cookies:
-            params['msToken'] = cookie.cookies['msToken']
-        params['a_bogus'] = get_a_bogus(params)
+        if 'msToken' in self.cookies.cookies:
+            self.params['msToken'] = self.cookies.cookies['msToken']
+        self.params['a_bogus'] = get_a_bogus(self.params)
 
     @staticmethod
-    def _wait():
-        sleep(randint(15, 45)/10)
+    def _wait() -> None:
+        time.sleep(random.randint(15, 45) / 10)
 
-    @staticmethod
-    def _send_get(params, settings: Settings, cookie: Cookie):
+    def _send_get(self) -> dict | None:
         '''返回 json 格式数据'''
         try:
-            headers = HEADERS | {'Cookie': cookie._generate_str()}
-            response = get(
+            response = self.session.get(
                 POST_API,
-                params=params,
-                timeout=settings.timeout,
-                headers=headers,
-                )
-            Acquire._wait()
+                params=self.params,
+                timeout=self.settings.timeout,
+            )
+            self._wait()
         except (
                 exceptions.ProxyError,
                 exceptions.SSLError,
                 exceptions.ChunkedEncodingError,
                 exceptions.ConnectionError,
         ):
-            print(f'[{Colors.YELLOW}]网络异常，请求 {POST_API}?{urlencode(params)} 失败')
+            print(f'[{Colors.YELLOW}]网络异常，请求 {POST_API}?{urlencode(self.params)} 失败')
             return
         except exceptions.ReadTimeout:
-            print(f'[{Colors.YELLOW}]网络异常，请求 {POST_API}?{urlencode(params)} 超时')
+            print(f'[{Colors.YELLOW}]网络异常，请求 {POST_API}?{urlencode(self.params)} 超时')
             return
         try:
             return response.json()
@@ -77,13 +87,13 @@ class Acquire():
                 print(f'[{Colors.YELLOW}]响应内容为空，可能是接口失效或者 Cookie 失效，请尝试更新 Cookie')
 
     @retry
-    def _request_items_page(self, sec_user_id: str, settings: Settings, cookie: Cookie):
+    def _request_items_page(self) -> list[dict] | None:
         '''获取单页作品数据，更新 self.cursor'''
-        params = {
+        self.params = {
             'device_platform': 'webapp',
             'aid': '6383',
             'channel': 'channel_pc_web',
-            'sec_user_id': sec_user_id,
+            'sec_user_id': self.account.sec_user_id,
             'max_cursor': self.cursor,
             'locate_query': 'false',
             'show_live_replay_strategy': '1',
@@ -100,8 +110,8 @@ class Acquire():
             'platform': 'PC',
             'downlink': '10',
         }
-        self._deal_url_params(params, cookie)
-        if not (data := self._send_get(params=params, settings=settings, cookie=cookie)):
+        self._deal_url_params()
+        if not (data := self._send_get()):
             print(f'[{Colors.YELLOW}]获取账号作品数据失败')
             self.finished = True
         else:
@@ -117,21 +127,21 @@ class Acquire():
                 print(f'[{Colors.YELLOW}]账号作品数据响应内容异常: {data}')
                 self.finished = True
 
-    def _early_stop(self, earliest: date):
+    def _early_stop(self) -> None:
         '''如果获取数据的发布日期已经早于限制日期，就不需要再获取下一页的数据了'''
-        if earliest > date.fromtimestamp(self.cursor / 1000):
+        if self.account.earliest_date > Date.fromtimestamp(self.cursor / 1000):
             self.finished = True
 
-    def request_items(self, sec_user_id: str, earliest: date, settings: Settings, cookie: Cookie):
+    def run(self) -> list[dict]:
         '''获取账号作品数据并返回'''
         items = []
-        with self._progress_object() as progress:
-            progress.add_task('正在获取账号主页数据', total=None)
+        with self._progress_object() as self.progress:
+            self.progress.add_task('正在获取账号主页数据', total=None)
             self.cursor = 0
             self.finished = False
             while not self.finished:
-                if (items_page := self._request_items_page(sec_user_id, settings, cookie)):
+                if (items_page := self._request_items_page()):
                     if not items_page == [None]:
                         items.extend(items_page)
-                    self._early_stop(earliest)
+                    self._early_stop()
         return items
