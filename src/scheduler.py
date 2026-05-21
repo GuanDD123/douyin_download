@@ -8,14 +8,15 @@ from prompt_toolkit.styles import Style
 from typing import Literal
 from pathlib import Path
 import asyncio
+from collections.abc import Sequence
 
 from src.config.constant import Colors, PROJECT_ROOT
 from src.config.settings import load_settings, AccountRoutine, Settings
-from src.config.cookies import input_save_cookies, load_cookies
+from src.config.cookies import input_save_cookies, load_cookies, Cookies
 from src.request_video_pic_info.request_video_pic_info import RequestVideoPicInfo
 from src.parser.cleaner import Cleaner
 from src.parser.extract_item_info import extract_account, ExtractItems
-from src.parser.generate_download_info import generate_download_infos
+from src.parser.generate_download_info import generate_download_infos, DownloadInfo
 from src.download.downloader import Downloader
 
 
@@ -58,9 +59,11 @@ def _create_account_save_folder(account_info: AccountRoutine, save_folder: Path)
     folder.mkdir(exist_ok=True)
     return folder
 
-async def download(settings: Settings, cookies: dict, download_infos: list):
-        async with Downloader(settings=settings, cookies=cookies, download_infos=download_infos) as downloader:
-            await downloader.run()
+
+async def download(settings: Settings, cookies: Cookies, download_infos: Sequence[DownloadInfo]):
+    async with Downloader(settings=settings, cookies=cookies, download_infos=download_infos) as downloader:
+        await downloader.run()
+
 
 def run() -> None:
     settings = load_settings()
