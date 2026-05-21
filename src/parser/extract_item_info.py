@@ -108,6 +108,10 @@ class ExtractItems:
         result['url'] = _extract_value(video_info, 'play_addr.url_list[0]')
         result['width'] = _extract_value(video_info, 'width')
         result['height'] = _extract_value(video_info, 'height')
+        if not self.settings.download_horizontal_video and result['width'] > result['height']:
+            return None
+        if not self.settings.download_vertical_video and result['width'] < result['height']:
+            return None
         return ItemInfo(**result, index=None)
 
     def _is_extra_items(self, create_time_date: Date, latest: Date, earliest: Date) -> bool:

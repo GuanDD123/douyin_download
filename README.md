@@ -34,11 +34,14 @@
 | 条目            | 说明                                                                                                 | json 配置示例 |
 | --------------- | ---------------------------------------------------------------------------------------------------- | --------------------- |
 | save_folder     | 下载视频存储文件夹（默认为项目根目录）                                                               | "save_folder": "douyin/my_folder" |
-| download_videos | 设置为 false，则不下载视频                                                                         | "download_videos": false |
-| download_images | 设置为 false，则不下载图集                                                                         | "download_images": false |
+| download_videos | 下载视频（默认 true）                                                                         | "download_videos": true |
+| download_images | 下载图集（默认 true）                                                                         | "download_images": true |
+| download_horizontal_video | 下载横版视频（默认 true）                                                                         | "download_horizontal_video": true |
+| download_vertical_video | 下载竖版视频（默认 true）                                                                         | "download_vertical_video": true |
 | name_format     | 下载的视频命名格式（可选项：create_time(视频发布日期) id(视频 id) type(图集/视频) desc(视频描述文本) | "name_format": [ "create_time", "id" ] |
-| split           | 上述 “name_format” 不同项间的间隔符（默认为 “-”）                                                    | "split": "-" |
-| date_format     | 上述 “name_format” 中日期格式（默认为 “%Y-%m-%d”(年月日)）                                           | "date_format", "%Y-%m-%d" |
+| split           | 上述 “name_format” 不同项间的间隔符（默认 “-”）                                                    | "split": "-" |
+| date_format     | 上述 “name_format” 中日期格式（默认 “%Y-%m-%d”(年月日)）                                           | "date_format", "%Y-%m-%d" |
+| add_account_mark_to_end_of_name | 将自定义账号mark加到视频/图片名末尾（默认 false）                                                                         | "add_account_mark_to_end_of_name": false |
 | proxy  | 网络代理（若使用 clash 的 Tun 模式，就需要这个参数）| "proxy": "<http://127.0.0.1:7897>" |
 
 ## 免责声明 (Disclaimer)

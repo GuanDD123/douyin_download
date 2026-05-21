@@ -92,11 +92,12 @@ def run() -> None:
             print(f'[{Colors.CYAN}]\n开始提取账号信息')
             account_info = extract_account(account, items[0], cleaner)
             print(f'[{Colors.CYAN}]账号昵称：{account_info.name}；账号 ID：{account_info.id}')
-            print(f'[{Colors.CYAN}]当前账号作品数量: {len(items)}')
             item_infos = extract_items.run(items, account.earliest_date, account.latest_date)
+            print(f'[{Colors.CYAN}]当前账号作品数量: {len(item_infos)}')
 
             account_save_folder = _create_account_save_folder(account_info, settings.save_folder)
-            download_infos = generate_download_infos(item_infos, account_save_folder, settings.split, settings.name_format, cleaner)
+            download_infos = generate_download_infos(account_info, settings.add_account_mark_to_end_of_name, 
+                                                     item_infos, account_save_folder, settings.split, settings.name_format, cleaner)
             asyncio.run(download(settings, cookies, download_infos))
 
 

@@ -58,7 +58,8 @@ class Account:
             earliest_date = Datetime.strptime(earliest, '%Y/%m/%d').date()
             latest_date = Datetime.strptime(latest, '%Y/%m/%d').date()
         except ValueError:
-            print(f'[{Colors.YELLOW}]作品发布日期 {earliest}, {latest} 无效，使用默认日期')
+            if earliest or latest:
+                print(f'[{Colors.YELLOW}]作品发布日期 {earliest}, {latest} 无效，使用默认日期')
             earliest_date = Date(2016, 9, 20)
             latest_date = Date.today() - datetime.timedelta(days=1)
         return earliest_date, latest_date
@@ -70,9 +71,12 @@ class Settings:
     save_folder: Path
     download_videos: bool
     download_images: bool
+    download_horizontal_video: bool
+    download_vertical_video: bool
     name_format: Sequence[str]
     split: str
     date_format: str
+    add_account_mark_to_end_of_name: bool
     proxy: str
     file_description_max_length: int
     chunk_size: int
@@ -95,9 +99,12 @@ def load_settings() -> Settings:
                     save_folder=Path(data.get('save_folder') or PROJECT_ROOT),
                     download_videos=data.get('download_videos', True),
                     download_images=data.get('download_images', True),
+                    download_horizontal_video=data.get('download_horizontal_video', True),
+                    download_vertical_video=data.get('download_vertical_video', True),
                     name_format=tuple(data.get('name_format', ('create_time', 'id', 'type', 'desc'))),
                     split=data.get('split', '-'),
                     date_format=data.get('date_format', '%Y-%m-%d'),
+                    add_account_mark_to_end_of_name=data.get('add_account_mark_to_end_of_name', False),
                     proxy=data.get('proxy'),
                     file_description_max_length=data.get('file_description_max_length', 64),
                     chunk_size=data.get('chunk_size', 1024 * 1024),
