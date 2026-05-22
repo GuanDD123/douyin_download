@@ -56,11 +56,15 @@ class Account:
     def _generate_date(earliest: str, latest: str) -> tuple[Date, Date]:
         try:
             earliest_date = Datetime.strptime(earliest, '%Y/%m/%d').date()
+        except ValueError:
+            if earliest:
+                print(f'[{Colors.YELLOW}]作品发布日期 {earliest} 无效，使用默认日期')
+            earliest_date = Date(2016, 9, 20)
+        try:
             latest_date = Datetime.strptime(latest, '%Y/%m/%d').date()
         except ValueError:
-            if earliest or latest:
-                print(f'[{Colors.YELLOW}]作品发布日期 {earliest}, {latest} 无效，使用默认日期')
-            earliest_date = Date(2016, 9, 20)
+            if latest:
+                print(f'[{Colors.YELLOW}]作品发布日期 {latest} 无效，使用默认日期')
             latest_date = Date.today() - datetime.timedelta(days=1)
         return earliest_date, latest_date
 
