@@ -53,18 +53,22 @@ class ExtractItems:
 
     def run(self, items: list[Mapping], earliest: Date, latest: Date) -> list[ItemInfo]:
         '''提取发布作品信息并返回'''
-        results = []
+        items_info = []
         for item in items:
-            if (_extract_value(item, 'images')):
+            result = self._extract_common(item)
+            if (result['create_time_date'] > latest) or (result['create_time_date'] < earliest):
+                continue
+            if (images := _extract_value(item, 'images')):
                 if self.settings.download_images:
-                    if images := self._extract_images(item, earliest, latest):
-                        results.extend(images)
-            elif self.settings.download_videos:
-                if video := self._extract_video(item, earliest, latest):
-                    results.append(video)
-        return results
+                    if images_info := self._extract_images(images, result):
+                        items_info.extend(images_info)
+            elif (video := _extract_value(item, 'video')):
+                if self.settings.download_videos:
+                    if video_info := self._extract_video(video, result):
+                        items_info.append(video_info)
+        return items_info
 
-    def _extract_common(self, item: Mapping, earliest: Date, latest: Date) -> dict[str, str] | None:
+    def _extract_common(self, item: Mapping) -> dict[str, str]:
         '''提取图文/视频作品共有信息'''
         result = {}
         result['id'] = _extract_value(item, 'aweme_id')
@@ -75,20 +79,14 @@ class ExtractItems:
         result['create_timestamp'] = _extract_value(item, 'create_time')
         result['create_time_date'] = Date.fromtimestamp(int(result['create_timestamp']))
         result['create_time'] = Date.strftime(result['create_time_date'], self.settings.date_format)
-        if self._is_extra_items(result['create_time_date'], latest, earliest):
-            return None
         return result
 
-    def _extract_images(self, images: Mapping, earliest: Date, latest: Date) -> list[ItemInfo] | None:
+    def _extract_images(self, images: Mapping, result: Mapping) -> list[ItemInfo]:
         '''提取图文作品信息'''
         results = []
-        result = self._extract_common(images, earliest, latest)
-        if not result:
-            return None
-        images_info = _extract_value(images, 'images')
         result['type'] = 'image'
         result['share_url'] = f'https://www.douyin.com/note/{result["id"]}'
-        for index, image in enumerate(images_info):
+        for index, image in enumerate(images):
             result['index'] = index
             result['url'] = _extract_value(image, 'url_list[0]')
             result['width'] = _extract_value(image, 'width')
@@ -96,25 +94,16 @@ class ExtractItems:
             results.append(ItemInfo(**result, format=None))
         return results
 
-    def _extract_video(self, video: Mapping, earliest: Date, latest: Date) -> ItemInfo | None:
+    def _extract_video(self, video: Mapping, result: Mapping) -> ItemInfo | None:
         '''提取视频作品信息'''
-        result = self._extract_common(video, earliest, latest)
-        if not result:
-            return None
-        video_info = _extract_value(video, 'video')
         result['type'] = 'video'
-        result['format'] = '.' + _extract_value(video_info, 'format')
+        result['format'] = '.' + _extract_value(video, 'format')
         result['share_url'] = f'https://www.douyin.com/video/{result["id"]}'
-        result['url'] = _extract_value(video_info, 'play_addr.url_list[0]')
-        result['width'] = _extract_value(video_info, 'width')
-        result['height'] = _extract_value(video_info, 'height')
+        result['url'] = _extract_value(video, 'play_addr.url_list[0]')
+        result['width'] = _extract_value(video, 'width')
+        result['height'] = _extract_value(video, 'height')
         if not self.settings.download_horizontal_video and result['width'] > result['height']:
             return None
         if not self.settings.download_vertical_video and result['width'] < result['height']:
             return None
         return ItemInfo(**result, index=None)
-
-    def _is_extra_items(self, create_time_date: Date, latest: Date, earliest: Date) -> bool:
-        if (create_time_date > latest) or (create_time_date < earliest):
-            return True
-        return False
