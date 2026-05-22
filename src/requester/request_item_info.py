@@ -10,14 +10,14 @@ from collections.abc import Mapping
 from src.encrypt_params.js_port import get_a_bogus
 from src.tool.function import retry
 from src.config.constant import Colors, USER_AGENT, REFERER
-from src.config.settings import Account, Settings
+from src.config.models import Account, Settings
 from src.config.cookies import Cookies
 
 
 POST_API = 'https://www.douyin.com/aweme/v1/web/aweme/post/'
 
 
-class RequestVideoPicInfo():
+class RequestItems():
     def __init__(self, settings: Settings, cookies: Cookies, account: Account):
         self.settings = settings
         self.cookies = cookies

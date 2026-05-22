@@ -1,25 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from datetime import date as Date
 from collections.abc import Mapping
-from dataclasses import dataclass
 
-from src.parser.cleaner import Cleaner
-from src.config.settings import Settings, Account, AccountRoutine
+from src.config.models import Settings, Account, AccountRoutine
+from src.parser.models import ItemInfo
 
-
-@dataclass(frozen=True, slots=True)
-class ItemInfo:
-    id: str
-    desc: str
-    create_timestamp: str
-    create_time_date: Date
-    create_time: str
-    type: str
-    share_url: str
-    format: str
-    url: str
-    width: int
-    height: int
-    index: int
+if TYPE_CHECKING:
+    from src.parser.cleaner import Cleaner
 
 
 def _extract_value(data: Mapping, attribute_chain: str) -> str | None:

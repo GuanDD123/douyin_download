@@ -1,6 +1,3 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
 from rich.progress import (SpinnerColumn, BarColumn, DownloadColumn, Progress,
                            TextColumn, TimeRemainingColumn)
 from rich import print
@@ -9,13 +6,11 @@ from asyncio import Semaphore, gather, create_task, TimeoutError
 from aiohttp import ClientSession, ClientResponse, ClientTimeout
 from collections.abc import Sequence
 
-from src.config.settings import Settings
 from src.config.constant import Colors, USER_AGENT, REFERER
+from src.config.models import Settings
 from src.config.cookies import Cookies
 from src.tool.function import retry_async
-
-if TYPE_CHECKING:
-    from src.parser.generate_download_info import DownloadInfo
+from src.parser.models import DownloadInfo
 
 
 class Downloader:

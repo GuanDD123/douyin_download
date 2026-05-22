@@ -4,24 +4,14 @@ from typing import TYPE_CHECKING
 from rich import print
 from collections.abc import Sequence
 from pathlib import Path
-from dataclasses import dataclass
 
-from src.config.settings import AccountRoutine
 from src.config.constant import Colors
+from src.config.models import AccountRoutine
+from src.parser.models import ItemInfo, DownloadInfo
 
 if TYPE_CHECKING:
-    from src.parser.extract_item_info import ItemInfo
     from src.parser.cleaner import Cleaner
 
-
-@dataclass(frozen=True, slots=True)
-class DownloadInfo:
-    url: str
-    path: Path
-    show: str
-    id: str
-    width: int
-    height: int
 
 def _generate_download_info(account_info: AccountRoutine, add_account_mark_to_end_of_name: bool,
                             item_info: ItemInfo, save_folder: Path,

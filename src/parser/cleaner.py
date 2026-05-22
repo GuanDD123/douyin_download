@@ -2,7 +2,7 @@ from platform import system
 from string import whitespace
 from rich import print
 
-from src.config.settings import Colors
+from src.config.constant import Colors
 
 
 class Cleaner:

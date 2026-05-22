@@ -11,13 +11,15 @@ import asyncio
 from collections.abc import Sequence
 
 from src.config.constant import Colors, PROJECT_ROOT
-from src.config.settings import load_settings, AccountRoutine, Settings
+from src.config.models import AccountRoutine, Settings
+from src.config.settings import load_settings
 from src.config.cookies import input_save_cookies, load_cookies, Cookies
-from src.request_video_pic_info.request_video_pic_info import RequestVideoPicInfo
+from src.requester.request_item_info import RequestItems
+from src.parser.models import DownloadInfo
 from src.parser.cleaner import Cleaner
 from src.parser.extract_item_info import extract_account, ExtractItems
-from src.parser.generate_download_info import generate_download_infos, DownloadInfo
-from src.download.downloader import Downloader
+from src.parser.generate_download_info import generate_download_infos
+from src.downloader.downloader import Downloader
 
 
 def run_menu() -> Literal['1', '2', '3', None]:
@@ -86,7 +88,7 @@ def run() -> None:
         ):
             print(f'[{Colors.CYAN}]{i}')
         cookies.update()
-        with RequestVideoPicInfo(settings, cookies, account) as requestor:
+        with RequestItems(settings, cookies, account) as requestor:
             items = requestor.run()
         if items:
             print(f'[{Colors.CYAN}]\n开始提取账号信息')
