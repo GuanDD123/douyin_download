@@ -20,6 +20,7 @@ from src.parser.cleaner import Cleaner
 from src.parser.extract_item_info import extract_account, ExtractItems
 from src.parser.generate_download_info import generate_download_infos
 from src.downloader.downloader import Downloader
+from src.backup.functions import backup_data, load_backup_data, delete_backup_file
 
 
 def run_menu() -> Literal['1', '2', '3', None]:
@@ -90,6 +91,7 @@ def run() -> None:
         cookies.update()
         with RequestItems(settings, cookies, account) as requestor:
             items = requestor.run()
+        backup_data(items, 'items')
         if items:
             print(f'[{Colors.CYAN}]\n开始提取账号信息')
             account_info = extract_account(account, items[0], cleaner)
@@ -100,7 +102,10 @@ def run() -> None:
             account_save_folder = _create_account_save_folder(account_info, settings.save_folder)
             download_infos = generate_download_infos(account_info, settings.add_account_mark_to_end_of_name, 
                                                      item_infos, account_save_folder, settings.split, settings.name_format, cleaner)
+            backup_data(download_infos, 'download_infos')
+
             asyncio.run(download(settings, cookies, download_infos))
+            delete_backup_file()
 
 
 def main() -> None:

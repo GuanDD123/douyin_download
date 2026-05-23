@@ -73,6 +73,8 @@ class Downloader:
                         print(f'[{Colors.YELLOW}]{download_info.show} {download_info.url} 响应内容为空')
                     elif response.status != 200 and response.status != 206:
                         print(f'[{Colors.YELLOW}]{download_info.show} {download_info.url} 响应状态码异常 {response.status}')
+                    elif download_info.path.exists() and download_info.path.stat().st_size == content_length:
+                        print(f'[{Colors.GREEN}]{download_info.show} {download_info.url} 文件已存在且大小匹配')
                     else:
                         await self._save_file(download_info, response, content_length)
                         return True
