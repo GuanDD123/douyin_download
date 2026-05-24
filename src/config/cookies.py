@@ -104,7 +104,7 @@ def input_save_cookies() -> None:
 
 class Cookies:
     def __init__(self) -> None:
-        self.cookies = {}
+        self.cookies: Mapping[str, str] = None
 
     def update(self) -> None:
         parameters = (MsToken.get_real_ms_token(), TtWid.get_tt_wid())

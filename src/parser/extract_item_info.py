@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from datetime import date as Date
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 from src.config.models import Settings, Account, AccountRoutine
 from src.parser.models import ItemInfo
@@ -40,7 +40,7 @@ class ExtractItems:
         self.settings = settings
         self.cleaner = cleaner
 
-    def run(self, items: list[Mapping], earliest: Date, latest: Date) -> list[ItemInfo]:
+    def run(self, items: Sequence[Mapping], earliest: Date, latest: Date) -> list[ItemInfo]:
         '''提取发布作品信息并返回'''
         items_info = []
         for item in items:
