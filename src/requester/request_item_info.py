@@ -68,7 +68,6 @@ class RequestItems():
             )
             self._wait()
         except (
-                exceptions.ProxyError,
                 exceptions.SSLError,
                 exceptions.ChunkedEncodingError,
                 exceptions.ConnectionError,

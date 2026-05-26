@@ -27,7 +27,6 @@
 
 - **注意**：cookies 为必要参数，但不需要通过配置文件修改，而是通过程序运行自动配置。可根据下图从浏览器复制
  ![](images/复制cookie.png)
-- **注意**：对于 .dash 视频，本项目采用直接修改文件后缀的方式（xxx.dash 改为 xxx.mp4）（目前还不清楚是否有视频为真正的 .dash 格式，因此暂时使用这个方案）
 
 ### 可选参数
 
@@ -42,7 +41,6 @@
 | split           | 上述 “name_format” 不同项间的间隔符（默认 “-”）                                                    | "split": "-" |
 | date_format     | 上述 “name_format” 中日期格式（默认 “%Y-%m-%d”(年月日)）                                           | "date_format", "%Y-%m-%d" |
 | add_account_mark_to_end_of_name | 将自定义账号mark加到视频/图片名末尾（默认 false）                                                                         | "add_account_mark_to_end_of_name": false |
-| proxy  | 网络代理（若使用 clash 的 Tun 模式，就需要这个参数）| "proxy": "<http://127.0.0.1:7897>" |
 
 ## 免责声明 (Disclaimer)
 

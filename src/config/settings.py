@@ -29,7 +29,6 @@ def load_settings() -> Settings:
                     split=data.get('split', '-'),
                     date_format=data.get('date_format', '%Y-%m-%d'),
                     add_account_mark_to_end_of_name=data.get('add_account_mark_to_end_of_name', False),
-                    proxy=data.get('proxy'),
                     file_description_max_length=data.get('file_description_max_length', 64),
                     chunk_size=data.get('chunk_size', 1024 * 1024),
                     timeout=data.get('timeout', 60 * 5),

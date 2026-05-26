@@ -26,7 +26,6 @@ class Downloader:
         self.session = ClientSession(
             headers={'User-Agent': USER_AGENT, 'Referer': REFERER},
             timeout=ClientTimeout(self.settings.timeout),
-            proxy=self.settings.proxy,
             cookies=self.cookies.cookies)
         return self
 

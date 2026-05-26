@@ -14,7 +14,6 @@ def send_post(url: str, headers: dict, data: str):
     try:
         return post(url, data=data, timeout=10, headers=headers)
     except (
-            exceptions.ProxyError,
             exceptions.SSLError,
             exceptions.ChunkedEncodingError,
             exceptions.ConnectionError,

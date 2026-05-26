@@ -79,7 +79,6 @@ class Settings:
     split: str
     date_format: str
     add_account_mark_to_end_of_name: bool
-    proxy: str
     file_description_max_length: int
     chunk_size: int
     timeout: int
