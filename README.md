@@ -1,3 +1,9 @@
+<div align="right">
+
+[简体中文](./README.md) | [English](./README.en.md)
+
+</div>
+
 # DouYinDownload
 
 本项目基于 Python 3.12

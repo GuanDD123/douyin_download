@@ -1,3 +1,9 @@
+<div align="right">
+
+[简体中文](./README.md) | [English](./README.en.md)
+
+</div>
+
 # Douyin Downloader
 
 A Python-based tool to download videos and image collections from Douyin (Chinese TikTok) accounts. Built with Python 3.12 and optimized for concurrent downloads.
