@@ -57,15 +57,17 @@ def xdg_open_config() -> None:
         print(f'[{Colors.RED}]Error occurred while opening files: {e}')
 
 
-def _create_account_save_folder(account_info: AccountRoutine, save_folder: Path):
+def _create_account_save_folder(account_info: AccountRoutine, save_folder: Path) -> Path:
     '''新建存储文件夹，返回文件夹路径'''
     folder = save_folder / f'UID{account_info.id}_{account_info.mark}_发布作品'
     folder.mkdir(exist_ok=True)
     return folder
 
 
-def _parse(account: Account, items: Sequence[Mapping], extract_items: ExtractItems, cleaner: Cleaner,
-          settings: Settings) -> list[DownloadInfo]:
+def _parse(account: Account, items: Sequence[Mapping], settings: Settings) -> list[DownloadInfo]:
+    cleaner = Cleaner()
+
+    extract_items = ExtractItems(settings=settings, cleaner=cleaner)
     print(f'[{Colors.CYAN}]\n开始提取账号信息')
     account_info = extract_account(account, items[0], cleaner)
     print(f'[{Colors.CYAN}]账号昵称：{account_info.name}；账号 ID：{account_info.id}')
@@ -85,13 +87,9 @@ async def _download(settings: Settings, cookies: Cookies, download_infos: Sequen
 
 
 def run() -> None:
-    settings = load_settings()
+    accounts, settings = load_settings()
     cookies = load_cookies()
-    cleaner = Cleaner()
-    extract_items = ExtractItems(settings=settings, cleaner=cleaner)
     dump_cache_data(settings, 'settings')
-
-    accounts = settings.accounts
     print(f'[{Colors.CYAN}]共有 {len(accounts)} 个账号的作品等待下载')
 
     for num, account in enumerate(accounts, start=1):
@@ -113,7 +111,7 @@ def run() -> None:
         dump_cache_data(items, 'items')
 
         if items:
-            download_infos = _parse(account, items, extract_items, cleaner, settings)
+            download_infos = _parse(account, items, settings)
             dump_cache_data(download_infos, 'download_infos')
 
             asyncio.run(_download(settings, cookies, download_infos))
@@ -122,10 +120,11 @@ def run() -> None:
 
 
 def continue_download_from_cache() -> None:
-    account = load_cache_data('account')
-    settings = load_cache_data('settings')
-    cookies = load_cache_data('cookies')
-    download_infos = load_cache_data('download_infos')
+    account: Account = load_cache_data('account')
+    settings: Settings = load_cache_data('settings')
+    cookies: Cookies = load_cache_data('cookies')
+    download_infos: list[DownloadInfo] = load_cache_data('download_infos')
+    cookies.update()
 
     print(f'[{Colors.CYAN}]账号标识：{account.mark or "空"}')
     print(f'[{Colors.CYAN}]最早发布日期：{account.earliest or "空"}，最晚发布日期：{account.latest or "空"}')

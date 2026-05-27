@@ -69,7 +69,6 @@ class Account:
 
 @dataclass(frozen=True, slots=True)
 class Settings:
-    accounts: Sequence[Account]
     save_folder: Path
     download_videos: bool
     download_images: bool

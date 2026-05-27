@@ -80,7 +80,7 @@ class ExtractItems:
             result['url'] = _extract_value(image, 'url_list[0]')
             result['width'] = _extract_value(image, 'width')
             result['height'] = _extract_value(image, 'height')
-            results.append(ItemInfo(**result, format=None))
+            results.append(ItemInfo(**result, format=None, data_size=None))
         return results
 
     def _extract_video(self, video: Mapping, result: Mapping) -> ItemInfo | None:
@@ -89,8 +89,9 @@ class ExtractItems:
         result['format'] = '.' + _extract_value(video, 'format')
         result['share_url'] = f'https://www.douyin.com/video/{result["id"]}'
         result['url'] = _extract_value(video, 'play_addr.url_list[0]')
-        result['width'] = _extract_value(video, 'width')
-        result['height'] = _extract_value(video, 'height')
+        result['width'] = _extract_value(video, 'play_addr.width')
+        result['height'] = _extract_value(video, 'play_addr.height')
+        result['data_size'] = _extract_value(video, 'play_addr.data_size')
         if not self.settings.download_horizontal_video and result['width'] > result['height']:
             return None
         if not self.settings.download_vertical_video and result['width'] < result['height']:

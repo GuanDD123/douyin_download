@@ -26,15 +26,13 @@ def _generate_download_info(account_info: AccountRoutine, add_account_mark_to_en
     if add_account_mark_to_end_of_name:
         name = f'{name} {split_tag} {account_info.mark}'
     path = save_folder / f'{name}{format}'
-    if path.exists():
-        print(f'[{Colors.CYAN}]{show} 文件已存在，跳过下载')
-    else:
-        return DownloadInfo(url=item_info.url,
-                            path=path,
-                            show=show,
-                            id=item_info.id,
-                            width=item_info.width,
-                            height=item_info.height)
+    return DownloadInfo(url=item_info.url,
+                        path=path,
+                        show=show,
+                        id=item_info.id,
+                        width=item_info.width,
+                        height=item_info.height,
+                        data_size=item_info.data_size)
 
 
 def generate_download_infos(account_info: AccountRoutine, add_account_mark_to_end_of_name: bool,

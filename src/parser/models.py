@@ -17,6 +17,7 @@ class ItemInfo:
     width: int
     height: int
     index: int
+    data_size: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,3 +28,4 @@ class DownloadInfo:
     id: str
     width: int
     height: int
+    data_size: int

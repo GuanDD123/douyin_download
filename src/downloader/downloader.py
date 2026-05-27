@@ -72,9 +72,6 @@ class Downloader:
                         print(f'[{Colors.YELLOW}]{download_info.show} {download_info.url} 响应内容为空')
                     elif response.status != 200 and response.status != 206:
                         print(f'[{Colors.YELLOW}]{download_info.show} {download_info.url} 响应状态码异常 {response.status}')
-                    elif download_info.path.exists() and download_info.path.stat().st_size == content_length:
-                        print(f'[{Colors.GREEN}]{download_info.show} 文件已存在且大小匹配')
-                        return True
                     else:
                         await self._save_file(download_info, response, content_length)
                         return True
@@ -88,6 +85,9 @@ class Downloader:
             self.sem = Semaphore(self.settings.concurrency)
             tasks = []
             for download_info in self.download_infos:
-                task = create_task(self._request_file(download_info))
-                tasks.append(task)
+                if download_info.path.exists() and download_info.path.stat().st_size == download_info.data_size:
+                    print(f'[{Colors.CYAN}]{download_info.show} 文件已存在且大小匹配，跳过下载')
+                else:
+                    task = create_task(self._request_file(download_info))
+                    tasks.append(task)
             await gather(*tasks)

@@ -133,7 +133,7 @@ The program will:
 ```
 douyin_download/
 ├── src/
-│   ├── scheduler.py          # Main scheduler/coordinator
+│   ├── workflow.py          # Main orchestration logic
 │   ├── downloader/           # Download logic
 │   ├── requester/            # API request handling
 │   ├── config/               # Configuration management
