@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from datetime import date as Date
 from collections.abc import Mapping, Sequence
 
-from src.config.models import Settings, Account, AccountRoutine
+from src.config.models import Settings, AccountRoutine
 from src.parser.models import ItemInfo
 
 if TYPE_CHECKING:
@@ -27,11 +27,11 @@ def _extract_value(data: Mapping, attribute_chain: str) -> str | None:
     return data
 
 
-def extract_account(account: Account, item: Mapping, cleaner: Cleaner) -> AccountRoutine:
+def extract_account(mark: str, item: Mapping, cleaner: Cleaner) -> AccountRoutine:
     '''提取账号 id、昵称，规范化账号 mark'''
     id = _extract_value(item, 'author.uid')
     name = cleaner.filter_name(_extract_value(item, 'author.nickname'), default='无效账号昵称')
-    mark = cleaner.filter_name(account.mark, default=name)
+    mark = cleaner.filter_name(mark, default=name)
     return AccountRoutine(id=id, name=name, mark=mark)
 
 

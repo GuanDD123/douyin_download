@@ -24,8 +24,6 @@ class ItemInfo:
 class DownloadInfo:
     url: str
     path: Path
-    show: str
-    id: str
     width: int
     height: int
     data_size: int

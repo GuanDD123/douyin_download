@@ -69,57 +69,53 @@ def _parse(account: Account, items: Sequence[Mapping], settings: Settings) -> li
 
     extract_items = ExtractItems(settings=settings, cleaner=cleaner)
     print(f'[{Colors.CYAN}]\n开始提取账号信息')
-    account_info = extract_account(account, items[0], cleaner)
+    account_info = extract_account(account.mark, items[0], cleaner)
     print(f'[{Colors.CYAN}]账号昵称：{account_info.name}；账号 ID：{account_info.id}')
     item_infos = extract_items.run(items, account.earliest_date, account.latest_date)
     print(f'[{Colors.CYAN}]当前账号作品数量: {len(item_infos)}')
 
     account_save_folder = _create_account_save_folder(account_info, settings.save_folder)
-    download_infos = generate_download_infos(account_info, settings.add_account_mark_to_end_of_name,
-                                             item_infos, account_save_folder, settings.split, settings.name_format, cleaner)
+    download_infos = generate_download_infos(account_info.mark, item_infos, account_save_folder,
+                                             settings, cleaner)
 
     return download_infos
 
 
-async def _download(settings: Settings, cookies: Cookies, download_infos: Sequence[DownloadInfo]):
-    async with Downloader(settings=settings, cookies=cookies, download_infos=download_infos) as downloader:
-        await downloader.run()
-
-
-def run() -> None:
+async def run() -> None:
     accounts, settings = load_settings()
     cookies = load_cookies()
-    dump_cache_data(settings, 'settings')
     print(f'[{Colors.CYAN}]共有 {len(accounts)} 个账号的作品等待下载')
 
-    for num, account in enumerate(accounts, start=1):
-        dump_cache_data(account, 'account')
+    with RequestItems(settings, cookies) as requestor:
+        async with Downloader(settings=settings, cookies=cookies) as downloader:
+            for num, account in enumerate(accounts, start=1):
+                dump_cache_data(settings, 'settings')
+                dump_cache_data(account, 'account')
 
-        if num != 1 and num % 5 == 1:
-            sleep_time = random.randint(20, 180)
-            print(f'[{Colors.CYAN}]已处理 {num - 1} 个账号，等待 {sleep_time} 秒后继续')
-            time.sleep(sleep_time)
+                if num != 1 and num % 5 == 1:
+                    sleep_time = random.randint(20, 180)
+                    print(f'[{Colors.CYAN}]已处理 {num - 1} 个账号，等待 {sleep_time} 秒后继续')
+                    time.sleep(sleep_time)
 
-        print(f'[{Colors.CYAN}]\n开始处理第 {num} 个账号' if num else '开始处理账号')
-        print(f'[{Colors.CYAN}]账号标识：{account.mark or "空"}')
-        print(f'[{Colors.CYAN}]最早发布日期：{account.earliest or "空"}，最晚发布日期：{account.latest or "空"}')
-        cookies.update()
-        dump_cache_data(cookies, 'cookies')
+                print(f'[{Colors.CYAN}]\n开始处理第 {num} 个账号' if num else '开始处理账号')
+                print(f'[{Colors.CYAN}]账号标识：{account.mark or "空"}')
+                print(f'[{Colors.CYAN}]最早发布日期：{account.earliest or "空"}，最晚发布日期：{account.latest or "空"}')
+                cookies.update()
+                dump_cache_data(cookies, 'cookies')
 
-        with RequestItems(settings, cookies, account) as requestor:
-            items = requestor.run()
-        dump_cache_data(items, 'items')
+                items = requestor.run(account.sec_user_id, account.earliest_date)
+                dump_cache_data(items, 'items')
 
-        if items:
-            download_infos = _parse(account, items, settings)
-            dump_cache_data(download_infos, 'download_infos')
+                if items:
+                    download_infos = _parse(account, items, settings)
+                    dump_cache_data(download_infos, 'download_infos')
 
-            asyncio.run(_download(settings, cookies, download_infos))
+                    await downloader.run(download_infos)
 
-    delete_cache_file()
+                delete_cache_file()
 
 
-def continue_download_from_cache() -> None:
+async def continue_download_from_cache() -> None:
     account: Account = load_cache_data('account')
     settings: Settings = load_cache_data('settings')
     cookies: Cookies = load_cache_data('cookies')
@@ -128,14 +124,15 @@ def continue_download_from_cache() -> None:
 
     print(f'[{Colors.CYAN}]账号标识：{account.mark or "空"}')
     print(f'[{Colors.CYAN}]最早发布日期：{account.earliest or "空"}，最晚发布日期：{account.latest or "空"}')
-    asyncio.run(_download(settings, cookies, download_infos))
+    async with Downloader(settings=settings, cookies=cookies) as downloader:
+        await downloader.run(download_infos)
     delete_cache_file()
 
 
 def main() -> None:
     while (mode := run_menu()):
         if mode == '1':
-            run()
+            asyncio.run(run())
         elif mode == '2':
             xdg_open_config()
             print(f'[{Colors.CYAN}]Press Enter to continue...')
@@ -143,5 +140,5 @@ def main() -> None:
         elif mode == '3':
             input_save_cookies()
         elif mode == '4':
-            continue_download_from_cache()
+            asyncio.run(continue_download_from_cache())
     print(f'[{Colors.WHITE}]程序结束运行')
