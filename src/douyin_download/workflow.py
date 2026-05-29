@@ -10,17 +10,17 @@ from pathlib import Path
 import asyncio
 from collections.abc import Sequence, Mapping
 
-from src.config.constant import Colors, PROJECT_ROOT
-from src.config.models import Account, AccountRoutine, Settings
-from src.config.settings import load_settings
-from src.config.cookies import input_save_cookies, load_cookies, Cookies
-from src.requester.request_item_info import RequestItems
-from src.parser.models import DownloadInfo
-from src.parser.cleaner import Cleaner
-from src.parser.extract_item_info import extract_account, ExtractItems
-from src.parser.generate_download_info import generate_download_infos
-from src.downloader.downloader import Downloader
-from src.cache.functions import dump_cache_data, load_cache_data, delete_cache_file
+from douyin_download.config.constant import Colors, PROJECT_ROOT
+from douyin_download.config.models import Account, AccountRoutine, Settings
+from douyin_download.config.settings import load_settings
+from douyin_download.config.cookies import input_save_cookies, load_cookies, Cookies
+from douyin_download.requester.request_item_info import RequestItems
+from douyin_download.parser.models import DownloadInfo
+from douyin_download.parser.cleaner import Cleaner
+from douyin_download.parser.extract_item_info import extract_account, ExtractItems
+from douyin_download.parser.generate_download_info import generate_download_infos
+from douyin_download.downloader.downloader import Downloader
+from douyin_download.cache.functions import dump_cache_data, load_cache_data, delete_cache_file
 
 
 def run_menu() -> Literal['1', '2', '3', None]:

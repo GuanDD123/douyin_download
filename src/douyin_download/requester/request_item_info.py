@@ -7,11 +7,11 @@ import time
 from rich import print
 from collections.abc import Mapping
 
-from src.encrypt_params.js_port import get_a_bogus
-from src.tool.function import retry
-from src.config.constant import Colors, USER_AGENT, REFERER
-from src.config.models import Settings
-from src.config.cookies import Cookies
+from douyin_download.encrypt_params.js_port import get_a_bogus
+from douyin_download.tool.function import retry
+from douyin_download.config.constant import Colors, USER_AGENT, REFERER
+from douyin_download.config.models import Settings
+from douyin_download.config.cookies import Cookies
 
 
 POST_API = 'https://www.douyin.com/aweme/v1/web/aweme/post/'

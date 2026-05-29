@@ -1,7 +1,7 @@
 from urllib import parse
 from py_mini_racer import MiniRacer
 
-from src.config.constant import PROJECT_ROOT, USER_AGENT
+from douyin_download.config.constant import PROJECT_ROOT, USER_AGENT
 
 
 def get_a_bogus(query: dict):

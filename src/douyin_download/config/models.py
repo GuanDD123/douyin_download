@@ -7,7 +7,7 @@ from pathlib import Path
 import sys
 from collections.abc import Sequence, Mapping
 
-from src.config.constant import Colors
+from douyin_download.config.constant import Colors
 
 
 @dataclass(frozen=True, slots=True)

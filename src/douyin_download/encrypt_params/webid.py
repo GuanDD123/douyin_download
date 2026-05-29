@@ -3,7 +3,7 @@ from json import dumps
 from rich import print
 
 from .general import send_post
-from src.config.constant import USER_AGENT, Colors
+from douyin_download.config.constant import USER_AGENT, Colors
 
 
 class WebID:

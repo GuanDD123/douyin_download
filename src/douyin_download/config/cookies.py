@@ -3,9 +3,9 @@ from rich import print
 import json
 from collections.abc import Mapping
 
-from src.config.constant import Colors, PROJECT_ROOT, ENCODE
-from src.encrypt_params.msToken import MsToken
-from src.encrypt_params.ttWid import TtWid
+from douyin_download.config.constant import Colors, PROJECT_ROOT, ENCODE
+from douyin_download.encrypt_params.msToken import MsToken
+from douyin_download.encrypt_params.ttWid import TtWid
 
 
 def _generate_dict(cookies_str: str) -> dict[str, str]:

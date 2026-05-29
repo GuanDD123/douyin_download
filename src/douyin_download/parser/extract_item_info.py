@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 from datetime import date as Date
 from collections.abc import Mapping, Sequence
 
-from src.config.models import Settings, AccountRoutine
-from src.parser.models import ItemInfo
+from douyin_download.config.models import Settings, AccountRoutine
+from douyin_download.parser.models import ItemInfo
 
 if TYPE_CHECKING:
-    from src.parser.cleaner import Cleaner
+    from douyin_download.parser.cleaner import Cleaner
 
 
 def _extract_value(data: Mapping, attribute_chain: str) -> str | None:

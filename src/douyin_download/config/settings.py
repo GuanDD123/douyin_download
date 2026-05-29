@@ -4,8 +4,8 @@ from rich import print
 from pathlib import Path
 import sys
 
-from src.config.constant import Colors, PROJECT_ROOT, ENCODE
-from src.config.models import Account, Settings
+from douyin_download.config.constant import Colors, PROJECT_ROOT, ENCODE
+from douyin_download.config.models import Account, Settings
 
 
 def load_settings() -> tuple[tuple[Account], Settings]:

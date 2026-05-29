@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 from collections.abc import Sequence
 from pathlib import Path
 
-from src.config.models import Settings
-from src.parser.models import ItemInfo, DownloadInfo
+from douyin_download.config.models import Settings
+from douyin_download.parser.models import ItemInfo, DownloadInfo
 
 if TYPE_CHECKING:
-    from src.parser.cleaner import Cleaner
+    from douyin_download.parser.cleaner import Cleaner
 
 
 def _generate_download_info(mark: str, item_info: ItemInfo,

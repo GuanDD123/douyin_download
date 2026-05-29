@@ -7,11 +7,11 @@ from aiohttp import ClientSession, ClientResponse, ClientTimeout
 from collections.abc import Sequence
 from typing import Literal
 
-from src.config.constant import Colors, USER_AGENT, REFERER
-from src.config.models import Settings
-from src.config.cookies import Cookies
-from src.tool.function import retry_async
-from src.parser.models import DownloadInfo
+from douyin_download.config.constant import Colors, USER_AGENT, REFERER
+from douyin_download.config.models import Settings
+from douyin_download.config.cookies import Cookies
+from douyin_download.tool.function import retry_async
+from douyin_download.parser.models import DownloadInfo
 
 
 class Downloader:
