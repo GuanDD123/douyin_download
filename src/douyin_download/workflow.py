@@ -157,8 +157,8 @@ async def continue_download_from_cache() -> None:
     print(f'[{Colors.CYAN}]账号标识：{account.mark or '空'}')
     print(f'[{Colors.CYAN}]最早发布日期：{account.earliest or '空'}，最晚发布日期：{account.latest or '空'}')
     async with DownloadSessionManager(settings.timeout, cookies_manager) as download_session_manager:
-        async with DownloadMedia(settings.concurrency, download_session_manager) as downloader:
-            await downloader.run(download_info_list)
+        downloader = DownloadMedia(settings.concurrency, download_session_manager)
+        await downloader.run(download_info_list)
     delete_cache_file()
 
 
