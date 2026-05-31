@@ -1,3 +1,4 @@
+from http import cookies
 import subprocess
 import time
 import random
@@ -5,31 +6,32 @@ from rich import print
 from prompt_toolkit.shortcuts import choice
 from prompt_toolkit.filters import is_done
 from prompt_toolkit.styles import Style
-from typing import Literal
+from typing import Any, Literal
 from pathlib import Path
 import asyncio
-from collections.abc import Sequence, Mapping
+from collections.abc import Sequence, Mapping, Callable
 
 from douyin_download.config.constant import Colors, PROJECT_ROOT
 from douyin_download.config.models import Account, AccountRoutine, Settings
 from douyin_download.config.settings import load_settings
-from douyin_download.config.cookies import input_save_cookies, load_cookies, Cookies
-from douyin_download.requester.request_item_info import RequestItems
+from douyin_download.config.cookies import input_save_cookies, CookiesManager
+from douyin_download.requester.request_item_info import (RequestItemInfo,
+                                                         SessionManager as RequestSessionManager)
 from douyin_download.parser.models import DownloadInfo
-from douyin_download.parser.cleaner import Cleaner
-from douyin_download.parser.extract_item_info import extract_account, ExtractItems
-from douyin_download.parser.generate_download_info import generate_download_infos
-from douyin_download.downloader.downloader import Downloader
+from douyin_download.parser.extract_item_info import extract_account_info, extract_item_info_list
+from douyin_download.parser.generate_download_info import generate_download_info_list
+from douyin_download.downloader.download_media import (DownloadMedia,
+                                                       SessionManager as DownloadSessionManager)
 from douyin_download.cache.functions import dump_cache_data, load_cache_data, delete_cache_file
 
 
 def run_menu() -> Literal['1', '2', '3', None]:
     style = Style.from_dict(
         {
-            "input-selection": "#f5e6e6",
-            "number": "#048282 bold",
-            "frame.border": "#884444",
-            "selected-option": "#df8620 bold",
+            'input-selection': '#f5e6e6',
+            'number': '#048282 bold',
+            'frame.border': '#884444',
+            'selected-option': '#df8620 bold',
         }
     )
     result = choice(
@@ -58,74 +60,105 @@ def xdg_open_config() -> None:
 
 
 def _create_account_save_folder(account_info: AccountRoutine, save_folder: Path) -> Path:
-    '''新建存储文件夹，返回文件夹路径'''
     folder = save_folder / f'UID{account_info.id}_{account_info.mark}_发布作品'
     folder.mkdir(exist_ok=True)
     return folder
 
 
-def _parse(account: Account, items: Sequence[Mapping], settings: Settings) -> list[DownloadInfo]:
-    cleaner = Cleaner()
-
-    extract_items = ExtractItems(settings=settings, cleaner=cleaner)
+def _parse(account: Account, item_list: Sequence[Mapping], settings: Settings) -> tuple[DownloadInfo]:
     print(f'[{Colors.CYAN}]\n开始提取账号信息')
-    account_info = extract_account(account.mark, items[0], cleaner)
+    account_info = extract_account_info(account.mark, item_list[0], settings.illegal_char)
     print(f'[{Colors.CYAN}]账号昵称：{account_info.name}；账号 ID：{account_info.id}')
-    item_infos = extract_items.run(items, account.earliest_date, account.latest_date)
-    print(f'[{Colors.CYAN}]当前账号作品数量: {len(item_infos)}')
+    item_info_list = extract_item_info_list(item_list, settings, account)
+    print(f'[{Colors.CYAN}]当前账号作品数量: {len(item_info_list)}')
 
     account_save_folder = _create_account_save_folder(account_info, settings.save_folder)
-    download_infos = generate_download_infos(account_info.mark, item_infos, account_save_folder,
-                                             settings, cleaner)
+    download_info_list = generate_download_info_list(account_info.mark, item_info_list, account_save_folder,
+                                                     settings)
 
-    return download_infos
+    return download_info_list
+
+
+class DouyinDownload:
+    def __init__(self, request_item_info: RequestItemInfo, download_media: DownloadMedia,
+                 cookies_manager: CookiesManager,
+                 parser: Callable[[Account, Sequence[Mapping], Settings], tuple[DownloadInfo]] = _parse,
+                 dump_cache_data: Callable[[Any, str], None] = dump_cache_data,
+                 delete_cache_file: Callable[[], None] = delete_cache_file):
+        self.accounts, self.settings = load_settings()
+        self.request_item_info = request_item_info
+        self.download_media = download_media
+        self.cookies_manager = cookies_manager
+        self.parser = parser
+        self.dump_cache_data = dump_cache_data
+        self.delete_cache_file = delete_cache_file
+
+    async def run(self) -> None:
+        print(f'[{Colors.CYAN}]共有 {len(self.accounts)} 个账号的作品等待下载')
+
+        for num, account in enumerate(self.accounts, start=1):
+            self.dump_cache_data(self.settings, 'settings')
+            self.dump_cache_data(account, 'account')
+
+            if num != 1 and num % 5 == 1:
+                self._sleep_random(20, 120)
+            else:
+                self._sleep_random(2, 7)
+
+            await self._download(num, account)
+            self.delete_cache_file()
+
+    @staticmethod
+    def _sleep_random(a: float, b: float) -> None:
+        time_sleep = random.uniform(a, b)
+        print(f'\n[cyan]休眠 {time_sleep} 秒\n')
+        time.sleep(time_sleep)
+
+    async def _download(self, num: int, account: Account) -> None:
+        print(f'[{Colors.CYAN}]\n开始处理第 {num} 个账号' if num else '开始处理账号')
+        print(f'[{Colors.CYAN}]账号标识：{account.mark or '空'}')
+        print(f'[{Colors.CYAN}]最早发布日期：{account.earliest or '空'}，最晚发布日期：{account.latest or '空'}')
+        self.cookies_manager.update()
+        self.dump_cache_data(self.cookies_manager, 'cookies_manager')
+
+        item_list = self.request_item_info.run(account)
+        self.dump_cache_data(item_list, 'item_list')
+
+        if item_list:
+            download_info_list = self.parser(account, item_list, self.settings)
+            self.dump_cache_data(download_info_list, 'download_info_list')
+
+            await self.download_media.run(download_info_list)
 
 
 async def run() -> None:
-    accounts, settings = load_settings()
-    cookies = load_cookies()
-    print(f'[{Colors.CYAN}]共有 {len(accounts)} 个账号的作品等待下载')
+    _, settings = load_settings()
 
-    with RequestItems(settings, cookies) as requestor:
-        async with Downloader(settings=settings, cookies=cookies) as downloader:
-            for num, account in enumerate(accounts, start=1):
-                dump_cache_data(settings, 'settings')
-                dump_cache_data(account, 'account')
+    cookies_manager = CookiesManager()
+    request_session_manager = RequestSessionManager(cookies_manager)
+    request_item_info = RequestItemInfo(settings.timeout, cookies_manager, request_session_manager)
+    download_session_manager = DownloadSessionManager(settings.timeout, cookies_manager)
+    download_media = DownloadMedia(settings.concurrency, download_session_manager)
 
-                if num != 1 and num % 5 == 1:
-                    sleep_time = random.randint(20, 180)
-                    print(f'[{Colors.CYAN}]已处理 {num - 1} 个账号，等待 {sleep_time} 秒后继续')
-                    time.sleep(sleep_time)
+    downloader = DouyinDownload(request_item_info, download_media, cookies_manager)
 
-                print(f'[{Colors.CYAN}]\n开始处理第 {num} 个账号' if num else '开始处理账号')
-                print(f'[{Colors.CYAN}]账号标识：{account.mark or "空"}')
-                print(f'[{Colors.CYAN}]最早发布日期：{account.earliest or "空"}，最晚发布日期：{account.latest or "空"}')
-                cookies.update()
-                dump_cache_data(cookies, 'cookies')
-
-                items = requestor.run(account.sec_user_id, account.earliest_date)
-                dump_cache_data(items, 'items')
-
-                if items:
-                    download_infos = _parse(account, items, settings)
-                    dump_cache_data(download_infos, 'download_infos')
-
-                    await downloader.run(download_infos)
-
-                delete_cache_file()
+    with request_session_manager:
+        async with download_session_manager:
+            await downloader.run()
 
 
 async def continue_download_from_cache() -> None:
     account: Account = load_cache_data('account')
     settings: Settings = load_cache_data('settings')
-    cookies: Cookies = load_cache_data('cookies')
-    download_infos: list[DownloadInfo] = load_cache_data('download_infos')
-    cookies.update()
+    cookies_manager: CookiesManager = load_cache_data('cookies_manager')
+    download_session_manager = DownloadSessionManager(settings.timeout, cookies_manager)
+    download_info_list: list[DownloadInfo] = load_cache_data('download_info_list')
+    cookies_manager.update()
 
-    print(f'[{Colors.CYAN}]账号标识：{account.mark or "空"}')
-    print(f'[{Colors.CYAN}]最早发布日期：{account.earliest or "空"}，最晚发布日期：{account.latest or "空"}')
-    async with Downloader(settings=settings, cookies=cookies) as downloader:
-        await downloader.run(download_infos)
+    print(f'[{Colors.CYAN}]账号标识：{account.mark or '空'}')
+    print(f'[{Colors.CYAN}]最早发布日期：{account.earliest or '空'}，最晚发布日期：{account.latest or '空'}')
+    async with DownloadMedia(settings.concurrency, download_session_manager) as downloader:
+        await downloader.run(download_info_list)
     delete_cache_file()
 
 

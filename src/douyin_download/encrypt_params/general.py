@@ -2,7 +2,7 @@ from requests import post, exceptions
 from rich import print
 
 from douyin_download.config.constant import USER_AGENT, Colors
-from douyin_download.tool.function import retry
+from douyin_download.tool.retry import retry
 
 
 HEADERS = {'User-Agent': USER_AGENT}

@@ -5,7 +5,7 @@ from douyin_download.config.constant import PROJECT_ROOT, USER_AGENT
 
 
 def get_a_bogus(query: dict):
-    path = PROJECT_ROOT / 'src/encrypt_params/a_bogus.js'
+    path = PROJECT_ROOT / 'src/douyin_download/encrypt_params/a_bogus.js'
     with open(path, 'r', encoding='utf-8') as f:
         a_bogus_js_code = f.read()
     a_bogus_ctx = MiniRacer()

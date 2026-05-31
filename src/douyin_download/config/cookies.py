@@ -102,19 +102,16 @@ def input_save_cookies() -> None:
     _save_json(cookies)
 
 
-class Cookies:
+class CookiesManager:
     def __init__(self) -> None:
-        self.cookies: Mapping[str, str] = None
+        self.cookies = self._load_cookies()
+
+    def _load_cookies(self) -> dict[str, str]:
+        with open(PROJECT_ROOT / 'cookies.json', 'r', encoding=ENCODE) as f:
+            return json.load(f)
 
     def update(self) -> None:
         parameters = (MsToken.get_real_ms_token(), TtWid.get_tt_wid())
         for i in parameters:
             if isinstance(i, dict):
                 self.cookies |= i
-
-
-def load_cookies() -> Cookies:
-    cookies = Cookies()
-    with open(PROJECT_ROOT / 'cookies.json', 'r', encoding=ENCODE) as f:
-        cookies.cookies = json.load(f)
-    return cookies

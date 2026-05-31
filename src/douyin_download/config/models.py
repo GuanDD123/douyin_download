@@ -5,7 +5,7 @@ import datetime
 from rich import print
 from pathlib import Path
 import sys
-from collections.abc import Sequence, Mapping
+from collections.abc import Sequence, Mapping, Set
 
 from douyin_download.config.constant import Colors
 
@@ -79,6 +79,6 @@ class Settings:
     date_format: str
     add_account_mark_to_end_of_name: bool
     file_description_max_length: int
-    chunk_size: int
     timeout: int
     concurrency: int
+    illegal_char: Set
