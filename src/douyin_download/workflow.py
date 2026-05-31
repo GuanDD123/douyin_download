@@ -119,6 +119,8 @@ class DouyinDownload:
         print(f'[{Colors.CYAN}]账号标识：{account.mark or '空'}')
         print(f'[{Colors.CYAN}]最早发布日期：{account.earliest or '空'}，最晚发布日期：{account.latest or '空'}')
         self.cookies_manager.update()
+        self.request_item_info.session_manager.update_cookies()
+        self.download_media.session_manager.update_cookies()
         self.dump_cache_data(self.cookies_manager, 'cookies_manager')
 
         item_list = self.request_item_info.run(account)

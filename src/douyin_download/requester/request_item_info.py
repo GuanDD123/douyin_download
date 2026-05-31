@@ -31,6 +31,9 @@ class SessionManager:
     def __exit__(self, exc_type, exc, tb):
         self.session.close()
 
+    def update_cookies(self) -> None:
+        self.session.cookies.update(self.cookies_manager.cookies)
+
 
 class RequestItemInfo:
     def __init__(self, timeout: int, cookies_manager: CookiesManager, session_manager: SessionManager):

@@ -41,6 +41,8 @@ class SessionManager:
     async def __aexit__(self, exc_type, exc, tb):
         await self.session.close()
 
+    def update_cookies(self) -> None:
+        self.session.cookie_jar.update_cookies(self.cookies_manager.cookies)
 
 class DownloadMedia:
     def __init__(self, concurrency: int, session_manager: SessionManager):
