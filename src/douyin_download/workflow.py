@@ -94,14 +94,18 @@ class DouyinDownload:
         self.delete_cache_file = delete_cache_file
 
     async def run(self) -> None:
-        print(f'[{Colors.CYAN}]共有 {len(self.accounts)} 个账号的作品等待下载')
+        accounts_num = len(self.accounts)
+        print(f'[{Colors.CYAN}]共有 {accounts_num} 个账号的作品等待下载')
 
+        sleep_long_after_deal_account_num = self._sleep_long_after_deal_account_num(accounts_num)
         for num, account in enumerate(self.accounts, start=1):
             self.dump_cache_data(self.settings, 'settings')
             self.dump_cache_data(account, 'account')
 
-            if num != 1 and num % 5 == 1:
+            if num % sleep_long_after_deal_account_num == 0:
+                print(f'\n[{Colors.CYAN}]已处理 {num} 个账号')
                 self._sleep_random(20, 120)
+                sleep_long_after_deal_account_num = self._sleep_long_after_deal_account_num(accounts_num, num)
             else:
                 self._sleep_random(2, 7)
 
@@ -109,9 +113,16 @@ class DouyinDownload:
             self.delete_cache_file()
 
     @staticmethod
+    def _sleep_long_after_deal_account_num(accounts_num: int, is_deal_num: int = 0) -> int:
+        sleep_long_after_deal_account_num = is_deal_num + random.randint(6, 12)
+        if sleep_long_after_deal_account_num < accounts_num:
+            print(f'\n[{Colors.CYAN}]处理 {sleep_long_after_deal_account_num} 个账号后将休眠较长时间')
+        return sleep_long_after_deal_account_num
+
+    @staticmethod
     def _sleep_random(a: float, b: float) -> None:
         time_sleep = random.uniform(a, b)
-        print(f'\n[cyan]休眠 {time_sleep} 秒\n')
+        print(f'\n[{Colors.CYAN}]休眠 {time_sleep} 秒\n')
         time.sleep(time_sleep)
 
     async def _download(self, num: int, account: Account) -> None:
