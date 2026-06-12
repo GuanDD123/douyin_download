@@ -1,7 +1,6 @@
 import re
 from rich import print
 import json
-from collections.abc import Mapping
 
 from douyin_download.config.constant import Colors, PROJECT_ROOT, ENCODE
 from douyin_download.encrypt_params.msToken import MsToken
@@ -77,7 +76,7 @@ def _generate_dict(cookies_str: str) -> dict[str, str]:
     return cookies
 
 
-def _check(cookies: Mapping[str, str]) -> None:
+def _check(cookies: dict[str, str]) -> None:
     if not cookies['sessionid_ss']:
         print(f'[{Colors.CYAN}]当前 Cookie 未登录')
     else:
@@ -88,7 +87,7 @@ def _check(cookies: Mapping[str, str]) -> None:
         del cookies[key]
 
 
-def _save_json(cookies: Mapping[str, str]) -> None:
+def _save_json(cookies: dict[str, str]) -> None:
     with open(PROJECT_ROOT / 'cookies.json', 'w', encoding=ENCODE) as f:
         json.dump(cookies, f, ensure_ascii=False, indent=4)
     print(f'[{Colors.GREEN}]写入 Cookie 成功！')

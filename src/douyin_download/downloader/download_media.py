@@ -5,11 +5,10 @@ from yarl import URL
 import asyncio
 from asyncio import Semaphore
 from aiohttp import ClientResponse, ClientSession, ClientTimeout
-from collections.abc import Sequence, Callable, AsyncIterator
+from collections.abc import Callable, AsyncIterator
 from pathlib import Path
 
 from douyin_download.config.constant import Colors, USER_AGENT, REFERER, RETRY_DOWNLOAD
-from douyin_download.config.models import Settings
 from douyin_download.config.cookies import CookiesManager
 from douyin_download.parser.models import DownloadInfo
 
@@ -49,7 +48,7 @@ class DownloadMedia:
         self.sem = Semaphore(concurrency)
         self.session_manager = session_manager
 
-    async def run(self, info_list: Sequence[DownloadInfo]) -> None:
+    async def run(self, info_list: list[DownloadInfo]) -> None:
         print(f'[{Colors.CYAN}]\n开始下载作品文件\n')
         with self._progress_object() as progress:
             tasks = []

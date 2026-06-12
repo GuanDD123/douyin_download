@@ -1,12 +1,11 @@
 from datetime import date as Date
-from collections.abc import Mapping, Sequence
 
 from douyin_download.config.models import Settings, Account, AccountRoutine
 from douyin_download.parser.models import ItemInfo
 from douyin_download.parser.tool import filter_name, clear_spaces
 
 
-def _extract_value(data: Mapping, attribute_chain: str) -> str | None:
+def _extract_value(data: dict, attribute_chain: str) -> str | None:
     '''根据 attribute_chain 从 dict 中提取值'''
     attributes = attribute_chain.split('.')
     for attribute in attributes:
@@ -22,7 +21,7 @@ def _extract_value(data: Mapping, attribute_chain: str) -> str | None:
     return data
 
 
-def extract_account_info(mark: str, item: Mapping, illegal_char: set[str]) -> AccountRoutine:
+def extract_account_info(mark: str, item: dict, illegal_char: set[str]) -> AccountRoutine:
     '''提取账号 id、昵称，规范化账号 mark'''
     id = _extract_value(item, 'author.uid')
     name = filter_name(_extract_value(item, 'author.nickname'), illegal_char=illegal_char, default='无效账号昵称')
@@ -30,7 +29,7 @@ def extract_account_info(mark: str, item: Mapping, illegal_char: set[str]) -> Ac
     return AccountRoutine(id=id, name=name, mark=mark)
 
 
-def _extract_common_info(item: Mapping, settings: Settings) -> dict[str, str]:
+def _extract_common_info(item: dict, settings: Settings) -> dict[str, str]:
     result = {}
     result['id'] = _extract_value(item, 'aweme_id')
     if desc := _extract_value(item, 'desc'):
@@ -44,7 +43,7 @@ def _extract_common_info(item: Mapping, settings: Settings) -> dict[str, str]:
     return result
 
 
-def _extract_image_info_list(images: Mapping, result: Mapping) -> list[ItemInfo]:
+def _extract_image_info_list(images: dict, result: dict) -> list[ItemInfo]:
     result_list = []
     result['type'] = 'image'
     result['share_url'] = f'https://www.douyin.com/note/{result['id']}'
@@ -57,7 +56,7 @@ def _extract_image_info_list(images: Mapping, result: Mapping) -> list[ItemInfo]
     return result_list
 
 
-def _extract_video_info(video: Mapping, result: Mapping, settings: Settings) -> ItemInfo | None:
+def _extract_video_info(video: dict, result: dict, settings: Settings) -> ItemInfo | None:
     result['type'] = 'video'
     result['format'] = '.' + _extract_value(video, 'format')
     result['share_url'] = f'https://www.douyin.com/video/{result['id']}'
@@ -72,7 +71,7 @@ def _extract_video_info(video: Mapping, result: Mapping, settings: Settings) -> 
     return ItemInfo(**result, index=None)
 
 
-def extract_item_info_list(item_list: Sequence[Mapping], settings: Settings, account: Account) -> tuple[ItemInfo]:
+def extract_item_info_list(item_list: list[dict], settings: Settings, account: Account) -> list[ItemInfo]:
     item_info_list = []
     for item in item_list:
         result = _extract_common_info(item, settings)
@@ -86,4 +85,4 @@ def extract_item_info_list(item_list: Sequence[Mapping], settings: Settings, acc
             if settings.download_videos:
                 if video_info := _extract_video_info(video, result, settings):
                     item_info_list.append(video_info)
-    return tuple(item_info_list)
+    return item_info_list

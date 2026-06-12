@@ -1,4 +1,3 @@
-from http import cookies
 import subprocess
 import time
 import random
@@ -9,7 +8,7 @@ from prompt_toolkit.styles import Style
 from typing import Any, Literal
 from pathlib import Path
 import asyncio
-from collections.abc import Sequence, Mapping, Callable
+from collections.abc import Callable
 
 from douyin_download.config.constant import Colors, PROJECT_ROOT
 from douyin_download.config.models import Account, AccountRoutine, Settings
@@ -65,7 +64,7 @@ def _create_account_save_folder(account_info: AccountRoutine, save_folder: Path)
     return folder
 
 
-def _parse(account: Account, item_list: Sequence[Mapping], settings: Settings) -> tuple[DownloadInfo]:
+def _parse(account: Account, item_list: list[dict], settings: Settings) -> list[DownloadInfo]:
     print(f'[{Colors.CYAN}]\n开始提取账号信息')
     account_info = extract_account_info(account.mark, item_list[0], settings.illegal_char)
     print(f'[{Colors.CYAN}]账号昵称：{account_info.name}；账号 ID：{account_info.id}')
@@ -82,7 +81,7 @@ def _parse(account: Account, item_list: Sequence[Mapping], settings: Settings) -
 class DouyinDownload:
     def __init__(self, request_item_info: RequestItemInfo, download_media: DownloadMedia,
                  cookies_manager: CookiesManager,
-                 parser: Callable[[Account, Sequence[Mapping], Settings], tuple[DownloadInfo]] = _parse,
+                 parser: Callable[[Account, list[dict], Settings], list[DownloadInfo]] = _parse,
                  dump_cache_data: Callable[[Any, str], None] = dump_cache_data,
                  delete_cache_file: Callable[[], None] = delete_cache_file):
         self.accounts, self.settings = load_settings()

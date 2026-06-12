@@ -5,7 +5,6 @@ from rich import print
 from rich.progress import BarColumn, Progress, TextColumn, TimeElapsedColumn
 import random
 import time
-from collections.abc import Mapping
 
 from douyin_download.encrypt_params.js_port import get_a_bogus
 from douyin_download.tool.retry import retry
@@ -104,13 +103,13 @@ class RequestItemInfo:
             print(f'[{Colors.YELLOW}]账号作品数据响应内容异常: {data}')
             return None
 
-    def _deal_url_params(self, params: Mapping[str, str], number: int = 8) -> None:
+    def _deal_url_params(self, params: dict[str, str], number: int = 8) -> None:
         '''添加 msToken、X-Bogus'''
         if 'msToken' in self.cookies_manager.cookies:
             params['msToken'] = self.cookies_manager.cookies['msToken']
         params['a_bogus'] = get_a_bogus(params)
 
-    def _send_get(self, params: Mapping[str, str]) -> dict | None:
+    def _send_get(self, params: dict[str, str]) -> dict | None:
         '''返回 json 格式数据'''
         try:
             response = self.session_manager.session.get(POST_API, params=params, timeout=self.timeout)

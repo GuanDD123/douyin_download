@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from pathlib import Path
 
 from douyin_download.config.models import Settings
@@ -26,8 +25,8 @@ def _generate_download_info(mark: str, item_info: ItemInfo,
                         data_size=item_info.data_size)
 
 
-def generate_download_info_list(mark: str, item_info_list: Sequence[ItemInfo],
-                                save_folder: Path, settings: Settings) -> tuple[DownloadInfo]:
-    download_info_list = tuple(_generate_download_info(mark, item_info, save_folder, settings)
-                          for item_info in item_info_list)
+def generate_download_info_list(mark: str, item_info_list: list[ItemInfo],
+                                save_folder: Path, settings: Settings) -> list[DownloadInfo]:
+    download_info_list = [_generate_download_info(mark, item_info, save_folder, settings)
+                          for item_info in item_info_list]
     return download_info_list

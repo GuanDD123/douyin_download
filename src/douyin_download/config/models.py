@@ -5,7 +5,6 @@ import datetime
 from rich import print
 from pathlib import Path
 import sys
-from collections.abc import Sequence, Mapping, Set
 
 from douyin_download.config.constant import Colors
 
@@ -27,7 +26,7 @@ class Account:
     latest_date: Date
 
     @classmethod
-    def from_mapping(cls, data: Mapping[str, str]) -> 'Account':
+    def from_mapping(cls, data: dict[str, str]) -> 'Account':
         mark = data['mark']
         url = data['url']
         earliest = data['earliest']
@@ -74,11 +73,11 @@ class Settings:
     download_images: bool
     download_horizontal_video: bool
     download_vertical_video: bool
-    name_format: Sequence[str]
+    name_format: tuple[str, ...]
     split: str
     date_format: str
     add_account_mark_to_end_of_name: bool
     file_description_max_length: int
     timeout: int
     concurrency: int
-    illegal_char: Set
+    illegal_char: set
