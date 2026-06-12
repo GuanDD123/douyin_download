@@ -2,7 +2,7 @@ import shelve
 from pathlib import Path
 from typing import Any
 
-cache_filepath = Path(__file__).resolve().with_name('cache')
+cache_filepath = Path(__file__).resolve().with_name("cache")
 
 
 def dump_cache_data(data: Any, key: str) -> None:

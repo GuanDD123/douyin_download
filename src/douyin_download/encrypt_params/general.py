@@ -5,8 +5,7 @@ from douyin_download.config.constant import USER_AGENT, Colors
 from douyin_download.tool.retry import retry
 
 
-HEADERS = {'User-Agent': USER_AGENT}
-
+HEADERS = {"User-Agent": USER_AGENT}
 
 
 @retry
@@ -14,20 +13,20 @@ def send_post(url: str, headers: dict, data: str):
     try:
         return post(url, data=data, timeout=10, headers=headers)
     except (
-            exceptions.SSLError,
-            exceptions.ChunkedEncodingError,
-            exceptions.ConnectionError,
-            exceptions.ReadTimeout,
+        exceptions.SSLError,
+        exceptions.ChunkedEncodingError,
+        exceptions.ConnectionError,
+        exceptions.ReadTimeout,
     ):
         return
 
 
 def extract_value(response_headers: dict, key: str):
-    '''从 response_headers['Set-Cookie'] 中，提取第一个键对应的值'''
-    set_cookie = response_headers.get('Set-Cookie')
+    """从 response_headers['Set-Cookie'] 中，提取第一个键对应的值"""
+    set_cookie = response_headers.get("Set-Cookie")
     if set_cookie:
         try:
-            value = set_cookie.split('; ')[0].split('=', 1)
+            value = set_cookie.split("; ")[0].split("=", 1)
             return {value[0]: value[1]}
         except IndexError:
-            print(f'[{Colors.RED}]获取 {key} 参数失败！')
+            print(f"[{Colors.RED}]获取 {key} 参数失败！")

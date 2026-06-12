@@ -1,6 +1,12 @@
 from rich import print
-from rich.progress import (SpinnerColumn, BarColumn, DownloadColumn, Progress,
-                           TextColumn, TimeRemainingColumn)
+from rich.progress import (
+    SpinnerColumn,
+    BarColumn,
+    DownloadColumn,
+    Progress,
+    TextColumn,
+    TimeRemainingColumn,
+)
 from yarl import URL
 import asyncio
 from asyncio import Semaphore
@@ -14,7 +20,8 @@ from douyin_download.parser.models import DownloadInfo
 
 
 def retry_async(function):
-    '''发生错误时尝试重新执行'''
+    """发生错误时尝试重新执行"""
+
     async def inner(*args, **kwargs):
         for _ in range(int(RETRY_DOWNLOAD) + 1):
             if result := await function(*args, **kwargs):
@@ -32,9 +39,10 @@ class SessionManager:
 
     async def __aenter__(self):
         self.session = ClientSession(
-            headers={'User-Agent': USER_AGENT, 'Referer': REFERER},
+            headers={"User-Agent": USER_AGENT, "Referer": REFERER},
             timeout=ClientTimeout(self.timeout),
-            cookies=self.cookies_manager.cookies)
+            cookies=self.cookies_manager.cookies,
+        )
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
@@ -43,18 +51,19 @@ class SessionManager:
     def update_cookies(self) -> None:
         self.session.cookie_jar.update_cookies(self.cookies_manager.cookies)
 
+
 class DownloadMedia:
     def __init__(self, concurrency: int, session_manager: SessionManager):
         self.sem = Semaphore(concurrency)
         self.session_manager = session_manager
 
     async def run(self, info_list: list[DownloadInfo]) -> None:
-        print(f'[{Colors.CYAN}]\n开始下载作品文件\n')
+        print(f"[{Colors.CYAN}]\n开始下载作品文件\n")
         with self._progress_object() as progress:
             tasks = []
             for info in info_list:
                 if info.path.exists() and info.path.stat().st_size == info.data_size:
-                    print(f'[{Colors.CYAN}]{info.show} 文件已存在且大小匹配，跳过下载')
+                    print(f"[{Colors.CYAN}]{info.show} 文件已存在且大小匹配，跳过下载")
                 else:
                     task = asyncio.create_task(self._download(info, progress))
                     tasks.append(task)
@@ -63,13 +72,17 @@ class DownloadMedia:
     @staticmethod
     def _progress_object() -> Progress:
         return Progress(
-            TextColumn('[progress.description]{task.description}', style=Colors.MAGENTA, justify='left'),
+            TextColumn(
+                "[progress.description]{task.description}",
+                style=Colors.MAGENTA,
+                justify="left",
+            ),
             SpinnerColumn(),
             BarColumn(bar_width=20),
-            '[progress.percentage]{task.percentage:>3.1f}%',
-            '•',
+            "[progress.percentage]{task.percentage:>3.1f}%",
+            "•",
             DownloadColumn(binary_units=True),
-            '•',
+            "•",
             TimeRemainingColumn(),
             transient=True,
         )
@@ -78,31 +91,46 @@ class DownloadMedia:
     async def _download(self, info: DownloadInfo, progress: Progress) -> bool:
         async with self.sem:
             try:
-                async with self.session_manager.session.get(URL(info.url, encoded=True)) as response:
-                    if not (content_length := int(response.headers.get('content-length', 0))):
-                        print(f'[{Colors.YELLOW}]{info.path.name} {info.url} 响应内容为空')
+                async with self.session_manager.session.get(
+                    URL(info.url, encoded=True)
+                ) as response:
+                    if not (
+                        content_length := int(response.headers.get("content-length", 0))
+                    ):
+                        print(
+                            f"[{Colors.YELLOW}]{info.path.name} {info.url} 响应内容为空"
+                        )
                         return False
                     if response.status != 200 and response.status != 206:
-                        print(f'[{Colors.YELLOW}]{info.path.name} {info.url} 响应状态码异常 {response.status}')
+                        print(
+                            f"[{Colors.YELLOW}]{info.path.name} {info.url} 响应状态码异常 {response.status}"
+                        )
                         return False
 
-                    task_id = progress.add_task(info.path.name, total=content_length or None)
+                    task_id = progress.add_task(
+                        info.path.name, total=content_length or None
+                    )
 
                     def update_progress(chunk_size: int):
                         progress.update(task_id, advance=chunk_size)
-                    await self._write_file(info.path, self._stream_body(response), update_progress)
+
+                    await self._write_file(
+                        info.path, self._stream_body(response), update_progress
+                    )
 
                     progress.remove_task(task_id)
 
                     self._show_media_info(info)
                     return True
             except Exception as e:
-                print(f'[{Colors.RED}]下载失败: {info.path.name} - {e}')
+                print(f"[{Colors.RED}]下载失败: {info.path.name} - {e}")
                 return False
 
     @staticmethod
-    async def _write_file(path: Path, chunk_iter: AsyncIterator[bytes], on_progress: Callable) -> None:
-        with open(path, 'wb') as f:
+    async def _write_file(
+        path: Path, chunk_iter: AsyncIterator[bytes], on_progress: Callable
+    ) -> None:
+        with open(path, "wb") as f:
             async for chunk in chunk_iter:
                 f.write(chunk)
                 on_progress(len(chunk))
@@ -118,4 +146,6 @@ class DownloadMedia:
             color = Colors.YELLOW
         else:
             color = Colors.GREEN
-        print(f'[{Colors.GREEN}]{info.path.name} [{color}]清晰度：{info.width}×{info.height}[{Colors.GREEN}] 下载完成 ({info.path.stat().st_size / (1024 * 1024):.2f} MB)')
+        print(
+            f"[{Colors.GREEN}]{info.path.name} [{color}]清晰度：{info.width}×{info.height}[{Colors.GREEN}] 下载完成 ({info.path.stat().st_size / (1024 * 1024):.2f} MB)"
+        )
