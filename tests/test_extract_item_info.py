@@ -2,11 +2,12 @@ import json
 from pathlib import PosixPath
 import datetime
 
-from douyin_download.parser.extract_item_info import (
+from douyin_download.config.models import Settings, Account
+from douyin_download.parser import (
+    AccountRoutine,
     extract_account_info,
     extract_item_info_list,
 )
-from douyin_download.config.models import Settings, Account, AccountRoutine
 from douyin_download.parser.models import ItemInfo
 
 
@@ -21,8 +22,7 @@ def test_extract_item_info_list():
             id="7637507783696387355",
             desc="#原神 《原神》至冬前瞻短片 - 风雪翳蔽的冻土",
             create_timestamp=1778245911,
-            create_time_date=datetime.date(2026, 5, 8),
-            create_time="2026-05-08",
+            create_time=datetime.date(2026, 5, 8),
             type="video",
             share_url="https://www.douyin.com/video/7637507783696387355",
             format=".mp4",
@@ -36,8 +36,7 @@ def test_extract_item_info_list():
             id="7595785227641834798",
             desc="地方传奇——「黑枪太婆」海捷德 #原神空月之歌 #原神月之四新区域",
             create_timestamp=1768557601,
-            create_time_date=datetime.date(2026, 1, 16),
-            create_time="2026-01-16",
+            create_time=datetime.date(2026, 1, 16),
             type="video",
             share_url="https://www.douyin.com/video/7595785227641834798",
             format=".mp4",
@@ -51,8 +50,7 @@ def test_extract_item_info_list():
             id="7549035681759120682",
             desc="😏 #原神空月之歌 #原神挪德卡莱",
             create_timestamp=1757660400,
-            create_time_date=datetime.date(2025, 9, 12),
-            create_time="2025-09-12",
+            create_time=datetime.date(2025, 9, 12),
             type="video",
             share_url="https://www.douyin.com/video/7549035681759120682",
             format=".mp4",
@@ -66,8 +64,7 @@ def test_extract_item_info_list():
             id="7645248723966053668",
             desc="#原神 《原神》过场动画-「因果熔炉」",
             create_timestamp=1780135200,
-            create_time_date=datetime.date(2026, 5, 30),
-            create_time="2026-05-30",
+            create_time=datetime.date(2026, 5, 30),
             type="video",
             share_url="https://www.douyin.com/video/7645248723966053668",
             format=".dash",
@@ -81,8 +78,7 @@ def test_extract_item_info_list():
             id="7645532646574968100",
             desc="自然。",
             create_timestamp=1780114293,
-            create_time_date=datetime.date(2026, 5, 30),
-            create_time="2026-05-30",
+            create_time=datetime.date(2026, 5, 30),
             type="video",
             share_url="https://www.douyin.com/video/7645532646574968100",
             format=".mp4",
@@ -96,8 +92,7 @@ def test_extract_item_info_list():
             id="7645245241552817444",
             desc="#原神 《原神》过场动画-「虚世净火」",
             create_timestamp=1780113600,
-            create_time_date=datetime.date(2026, 5, 30),
-            create_time="2026-05-30",
+            create_time=datetime.date(2026, 5, 30),
             type="video",
             share_url="https://www.douyin.com/video/7645245241552817444",
             format=".dash",
@@ -111,8 +106,7 @@ def test_extract_item_info_list():
             id="7645161267329617206",
             desc="这一篇故事已然落笔，下一篇故事未完待续。#原神空月之歌",
             create_timestamp=1780027824,
-            create_time_date=datetime.date(2026, 5, 29),
-            create_time="2026-05-29",
+            create_time=datetime.date(2026, 5, 29),
             type="video",
             share_url="https://www.douyin.com/video/7645161267329617206",
             format=".mp4",
@@ -126,8 +120,7 @@ def test_extract_item_info_list():
             id="7645158977206029631",
             desc="#原神 《原神》过场动画-「三千明光」",
             create_timestamp=1780027291,
-            create_time_date=datetime.date(2026, 5, 29),
-            create_time="2026-05-29",
+            create_time=datetime.date(2026, 5, 29),
             type="video",
             share_url="https://www.douyin.com/video/7645158977206029631",
             format=".dash",
@@ -141,8 +134,7 @@ def test_extract_item_info_list():
             id="7644790499647261990",
             desc="《原神》「月之七」版本创作者激励计划已开启，旅行者可前往【原神官号—专区】参与 #原神 #原神创作者激励计划 #原神空月之歌",
             create_timestamp=1779941498,
-            create_time_date=datetime.date(2026, 5, 28),
-            create_time="2026-05-28",
+            create_time=datetime.date(2026, 5, 28),
             type="video",
             share_url="https://www.douyin.com/video/7644790499647261990",
             format=".mp4",
@@ -156,8 +148,7 @@ def test_extract_item_info_list():
             id="7644789064909999406",
             desc="#原神 《原神》过场动画-「异栖之木」",
             create_timestamp=1779941162,
-            create_time_date=datetime.date(2026, 5, 28),
-            create_time="2026-05-28",
+            create_time=datetime.date(2026, 5, 28),
             type="video",
             share_url="https://www.douyin.com/video/7644789064909999406",
             format=".dash",
@@ -173,12 +164,9 @@ def test_extract_item_info_list():
         (
             Account(
                 mark="fake_mark /fwa*?81",
-                url="https://www.douyin.com/user/fake_mark /fwa*?81",
+                url="https://www.douyin.com/user/fake_mark?fwa*?81",
                 earliest="",
                 latest="",
-                sec_user_id="fake_mark",
-                earliest_date=datetime.date(2016, 9, 20),
-                latest_date=datetime.date(2026, 5, 30),
             ),
         ),
         Settings(
@@ -202,4 +190,6 @@ def test_extract_item_info_list():
         extract_account_info(accounts[0].mark, item_list[0], settings.illegal_char)
         == account_info
     )
-    assert extract_item_info_list(item_list, settings, accounts[0]) == item_info_list
+    for index, result in enumerate(extract_item_info_list(item_list, settings, accounts[0])):
+        print(result)
+        assert result == item_info_list[index]

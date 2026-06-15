@@ -16,7 +16,9 @@ from pathlib import Path
 
 from douyin_download.config.constant import Colors, USER_AGENT, REFERER, RETRY_DOWNLOAD
 from douyin_download.config.cookies import CookiesManager
-from douyin_download.parser.models import DownloadInfo
+from douyin_download.parser import DownloadInfo
+
+__all__ = ["SessionManager", "DownloadMedia"]
 
 
 def retry_async(function):
@@ -32,16 +34,16 @@ def retry_async(function):
 
 
 class SessionManager:
-    def __init__(self, timeout: int, cookies_manager: CookiesManager):
+    def __init__(self, timeout: int, cookies: CookiesManager):
         self.timeout = timeout
-        self.cookies_manager = cookies_manager
+        self.cookies = cookies
         self.session = None
 
     async def __aenter__(self):
         self.session = ClientSession(
             headers={"User-Agent": USER_AGENT, "Referer": REFERER},
             timeout=ClientTimeout(self.timeout),
-            cookies=self.cookies_manager.cookies,
+            cookies=self.cookies.cookies,
         )
         return self
 
@@ -49,13 +51,13 @@ class SessionManager:
         await self.session.close()
 
     def update_cookies(self) -> None:
-        self.session.cookie_jar.update_cookies(self.cookies_manager.cookies)
+        self.session.cookie_jar.update_cookies(self.cookies.cookies)
 
 
 class DownloadMedia:
-    def __init__(self, concurrency: int, session_manager: SessionManager):
+    def __init__(self, concurrency: int, session: SessionManager):
         self.sem = Semaphore(concurrency)
-        self.session_manager = session_manager
+        self.session = session
 
     async def run(self, info_list: list[DownloadInfo]) -> None:
         print(f"[{Colors.CYAN}]\n开始下载作品文件\n")
@@ -63,14 +65,16 @@ class DownloadMedia:
             tasks = []
             for info in info_list:
                 if info.path.exists() and info.path.stat().st_size == info.data_size:
-                    print(f"[{Colors.CYAN}]{info.show} 文件已存在且大小匹配，跳过下载")
+                    print(
+                        f"[{Colors.CYAN}]{info.path.name} 文件已存在且大小匹配，跳过下载"
+                    )
                 else:
                     task = asyncio.create_task(self._download(info, progress))
                     tasks.append(task)
             await asyncio.gather(*tasks)
 
     @staticmethod
-    def _progress_object() -> Progress:
+    def _progress_object():
         return Progress(
             TextColumn(
                 "[progress.description]{task.description}",
@@ -88,10 +92,10 @@ class DownloadMedia:
         )
 
     @retry_async
-    async def _download(self, info: DownloadInfo, progress: Progress) -> bool:
+    async def _download(self, info: DownloadInfo, progress: Progress):
         async with self.sem:
             try:
-                async with self.session_manager.session.get(
+                async with self.session.session.get(
                     URL(info.url, encoded=True)
                 ) as response:
                     if not (
@@ -129,19 +133,19 @@ class DownloadMedia:
     @staticmethod
     async def _write_file(
         path: Path, chunk_iter: AsyncIterator[bytes], on_progress: Callable
-    ) -> None:
+    ):
         with open(path, "wb") as f:
             async for chunk in chunk_iter:
                 f.write(chunk)
                 on_progress(len(chunk))
 
     @staticmethod
-    async def _stream_body(response: ClientResponse) -> AsyncIterator[bytes]:
+    async def _stream_body(response: ClientResponse):
         async for chunk in response.content.iter_chunked(1024 * 1024):
             yield chunk
 
     @staticmethod
-    def _show_media_info(info: DownloadInfo) -> None:
+    def _show_media_info(info: DownloadInfo):
         if max(info.width, info.height) < 1920:
             color = Colors.YELLOW
         else:

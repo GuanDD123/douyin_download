@@ -1,14 +1,23 @@
 from pathlib import Path
 
 from douyin_download.config.models import Settings
-from douyin_download.parser.models import ItemInfo, DownloadInfo
-from douyin_download.parser.tool import filter_name
+from .models import ItemInfo, DownloadInfo
+from .tool import filter_name
+
+__all__ = ["generate_download_info_list"]
 
 
 def _generate_download_info(
     mark: str, item_info: ItemInfo, save_folder: Path, settings: Settings
-) -> DownloadInfo:
-    name = settings.split.join(getattr(item_info, key) for key in settings.name_format)
+):
+    name_compnent = []
+    for key in settings.name_format:
+        if key == "create_time":
+            name_compnent.append(item_info.create_time.strftime(settings.date_format))
+        else:
+            name_compnent.append(getattr(item_info, key))
+    name = settings.split.join(name_compnent)
+
     if item_info.type == "video":
         format = ".mp4" if item_info.format == ".dash" else item_info.format
     else:

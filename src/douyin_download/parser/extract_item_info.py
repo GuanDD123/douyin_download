@@ -1,11 +1,13 @@
 from datetime import date as Date
 
-from douyin_download.config.models import Settings, Account, AccountRoutine
-from douyin_download.parser.models import ItemInfo
-from douyin_download.parser.tool import filter_name, clear_spaces
+from douyin_download.config.models import Settings, Account
+from .models import ItemInfo, AccountRoutine
+from .tool import filter_name, clear_spaces
+
+__all__ = ["extract_account_info", "extract_item_info_list"]
 
 
-def _extract_value(data: dict, attribute_chain: str) -> str | None:
+def _extract_value(data: dict, attribute_chain: str):
     """根据 attribute_chain 从 dict 中提取值"""
     attributes = attribute_chain.split(".")
     for attribute in attributes:
@@ -35,7 +37,7 @@ def extract_account_info(
     return AccountRoutine(id=id, name=name, mark=mark)
 
 
-def _extract_common_info(item: dict, settings: Settings) -> dict[str, str]:
+def _extract_common_info(item: dict, settings: Settings):
     result = {}
     result["id"] = _extract_value(item, "aweme_id")
     if desc := _extract_value(item, "desc"):
@@ -45,15 +47,12 @@ def _extract_common_info(item: dict, settings: Settings) -> dict[str, str]:
     else:
         result["desc"] = "作品描述为空"
     result["create_timestamp"] = _extract_value(item, "create_time")
-    result["create_time_date"] = Date.fromtimestamp(int(result["create_timestamp"]))
-    result["create_time"] = Date.strftime(
-        result["create_time_date"], settings.date_format
-    )
+    result["create_time"] = Date.fromtimestamp(int(result["create_timestamp"]))
     return result
 
 
-def _extract_image_info_list(images: dict, result: dict) -> list[ItemInfo]:
-    result_list = []
+def _extract_image_info_list(images: dict, result: dict):
+    result_list: list[ItemInfo] = []
     result["type"] = "image"
     result["share_url"] = f"https://www.douyin.com/note/{result['id']}"
     for index, image in enumerate(images):
@@ -65,9 +64,7 @@ def _extract_image_info_list(images: dict, result: dict) -> list[ItemInfo]:
     return result_list
 
 
-def _extract_video_info(
-    video: dict, result: dict, settings: Settings
-) -> ItemInfo | None:
+def _extract_video_info(video: dict, result: dict, settings: Settings):
     result["type"] = "video"
     result["format"] = "." + _extract_value(video, "format")
     result["share_url"] = f"https://www.douyin.com/video/{result['id']}"
@@ -88,8 +85,8 @@ def extract_item_info_list(
     item_info_list = []
     for item in item_list:
         result = _extract_common_info(item, settings)
-        if (result["create_time_date"] > account.latest_date) or (
-            result["create_time_date"] < account.earliest_date
+        if (result["create_time"] > account.latest) or (
+            result["create_time"] < account.earliest
         ):
             continue
         if images := _extract_value(item, "images"):

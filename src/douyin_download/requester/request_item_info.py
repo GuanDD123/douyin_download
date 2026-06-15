@@ -6,44 +6,40 @@ from rich.progress import BarColumn, Progress, TextColumn, TimeElapsedColumn
 import random
 import time
 
-from douyin_download.encrypt_params.js_port import get_a_bogus
-from douyin_download.tool.retry import retry
+from douyin_download.encrypt_params import get_a_bogus
+from douyin_download.tool import retry
 from douyin_download.config.constant import Colors, USER_AGENT, REFERER
 from douyin_download.config.models import Account
 from douyin_download.config.cookies import CookiesManager
 
+__all__ = ["SessionManager", "RequestItemInfo"]
 
 POST_API = "https://www.douyin.com/aweme/v1/web/aweme/post/"
 
 
 class SessionManager:
-    def __init__(self, cookies_manager: CookiesManager):
-        self.cookies_manager = cookies_manager
+    def __init__(self, cookies: CookiesManager):
+        self.cookies = cookies
         self.session = None
 
     def __enter__(self):
         self.session = Session()
         self.session.headers.update({"User-Agent": USER_AGENT, "Referer": REFERER})
-        self.session.cookies.update(self.cookies_manager.cookies)
+        self.session.cookies.update(self.cookies.cookies)
         return self
 
     def __exit__(self, exc_type, exc, tb):
         self.session.close()
 
     def update_cookies(self) -> None:
-        self.session.cookies.update(self.cookies_manager.cookies)
+        self.session.cookies.update(self.cookies.cookies)
 
 
 class RequestItemInfo:
-    def __init__(
-        self,
-        timeout: int,
-        cookies_manager: CookiesManager,
-        session_manager: SessionManager,
-    ):
+    def __init__(self, timeout: int, cookies: CookiesManager, session: SessionManager):
         self.timeout = timeout
-        self.cookies_manager = cookies_manager
-        self.session_manager = session_manager
+        self.cookies = cookies
+        self.session = session
 
     def run(self, account: Account) -> list[dict]:
         """获取账号作品数据并返回"""
@@ -60,14 +56,12 @@ class RequestItemInfo:
                     break
                 items_page, cursor, has_more = result
                 items.extend(items_page)
-                if not has_more or self._early_stop_by_date(
-                    account.earliest_date, cursor
-                ):
+                if not has_more or self._early_stop_by_date(account.earliest, cursor):
                     break
         return items
 
     @staticmethod
-    def _progress_object() -> Progress:
+    def _progress_object():
         return Progress(
             TextColumn(
                 "[progress.description]{task.description}",
@@ -82,9 +76,7 @@ class RequestItemInfo:
         )
 
     @retry
-    def _request_items_page_cursor_has_more(
-        self, sec_user_id: str, cursor: int
-    ) -> tuple[list[dict], int, bool] | None:
+    def _request_items_page_cursor_has_more(self, sec_user_id: str, cursor: int):
         params = {
             "device_platform": "webapp",
             "aid": "6383",
@@ -122,16 +114,16 @@ class RequestItemInfo:
             print(f"[{Colors.YELLOW}]账号作品数据响应内容异常: {data}")
             return None
 
-    def _deal_url_params(self, params: dict[str, str], number: int = 8) -> None:
+    def _deal_url_params(self, params: dict[str, str], number: int = 8):
         """添加 msToken、X-Bogus"""
-        if "msToken" in self.cookies_manager.cookies:
-            params["msToken"] = self.cookies_manager.cookies["msToken"]
+        if "msToken" in self.cookies.cookies:
+            params["msToken"] = self.cookies.cookies["msToken"]
         params["a_bogus"] = get_a_bogus(params)
 
-    def _send_get(self, params: dict[str, str]) -> dict | None:
+    def _send_get(self, params: dict[str, str]):
         """返回 json 格式数据"""
         try:
-            response = self.session_manager.session.get(
+            response = self.session.session.get(
                 POST_API, params=params, timeout=self.timeout
             )
             time.sleep(random.uniform(1, 5))
@@ -144,7 +136,7 @@ class RequestItemInfo:
             print(f"[{Colors.YELLOW}]响应内容出错: {e}")
             return None
 
-    def _early_stop_by_date(self, earliest_date: Date, cursor: int) -> bool:
-        if Date.fromtimestamp(cursor / 1000) < earliest_date:
+    def _early_stop_by_date(self, earliest: Date, cursor: int):
+        if Date.fromtimestamp(cursor / 1000) < earliest:
             return True
         return False

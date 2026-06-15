@@ -2,14 +2,22 @@ from datetime import date as Date
 from dataclasses import dataclass
 from pathlib import Path
 
+__all__ = ["AccountRoutine", "DownloadInfo"]
 
-@dataclass(frozen=True, slots=True)
+
+@dataclass(slots=True)
+class AccountRoutine:
+    id: str
+    name: str
+    mark: str
+
+
+@dataclass(slots=True)
 class ItemInfo:
     id: str
     desc: str
     create_timestamp: str
-    create_time_date: Date
-    create_time: str
+    create_time: Date
     type: str
     share_url: str
     format: str
@@ -20,7 +28,7 @@ class ItemInfo:
     data_size: int
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class DownloadInfo:
     url: str
     path: Path

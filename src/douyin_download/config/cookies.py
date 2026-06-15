@@ -2,12 +2,11 @@ import re
 from rich import print
 import json
 
-from douyin_download.config.constant import Colors, PROJECT_ROOT, ENCODE
-from douyin_download.encrypt_params.msToken import MsToken
-from douyin_download.encrypt_params.ttWid import TtWid
+from .constant import Colors, PROJECT_ROOT, ENCODE
+from douyin_download.encrypt_params import get_real_ms_token, get_tt_wid
 
 
-def _generate_dict(cookies_str: str) -> dict[str, str]:
+def _generate_dict(cookies_str: str):
     cookies_key = {
         "passport_csrf_token",
         "passport_csrf_token_default",
@@ -76,7 +75,7 @@ def _generate_dict(cookies_str: str) -> dict[str, str]:
     return cookies
 
 
-def _check(cookies: dict[str, str]) -> None:
+def _check(cookies: dict[str, str]):
     if not cookies["sessionid_ss"]:
         print(f"[{Colors.CYAN}]当前 Cookie 未登录")
     else:
@@ -87,14 +86,14 @@ def _check(cookies: dict[str, str]) -> None:
         del cookies[key]
 
 
-def _save_json(cookies: dict[str, str]) -> None:
+def _save_json(cookies: dict[str, str]):
     with open(PROJECT_ROOT / "cookies.json", "w", encoding=ENCODE) as f:
         json.dump(cookies, f, ensure_ascii=False, indent=4)
     print(f"[{Colors.GREEN}]写入 Cookie 成功！")
 
 
 def input_save_cookies() -> None:
-    while not (cookies_str := input(f"请粘贴 Cookie 内容: ")):
+    while not (cookies_str := input("请粘贴 Cookie 内容: ")):
         continue
     cookies = _generate_dict(cookies_str)
     _check(cookies)
@@ -102,15 +101,15 @@ def input_save_cookies() -> None:
 
 
 class CookiesManager:
-    def __init__(self) -> None:
-        self.cookies = self._load_cookies()
+    def __init__(self):
+        self.cookies: dict[str, str] = self._load_cookies()
 
-    def _load_cookies(self) -> dict[str, str]:
+    def _load_cookies(self):
         with open(PROJECT_ROOT / "cookies.json", "r", encoding=ENCODE) as f:
             return json.load(f)
 
     def update(self) -> None:
-        parameters = (MsToken.get_real_ms_token(), TtWid.get_tt_wid())
+        parameters = (get_real_ms_token(), get_tt_wid())
         for i in parameters:
             if isinstance(i, dict):
                 self.cookies |= i

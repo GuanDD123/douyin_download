@@ -1,5 +1,7 @@
 from douyin_download.config.constant import RETRY_ACCOUNT
 
+__all__ = ["retry"]
+
 
 def retry(function):
     """发生错误时尝试重新执行"""

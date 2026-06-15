@@ -1,90 +1,109 @@
-from dataclasses import dataclass
 import re
 from datetime import date as Date, datetime as Datetime
 import datetime
 from rich import print
 from pathlib import Path
-import sys
+from platform import system
+from string import whitespace
+from pydantic import BaseModel, Field, field_validator, model_validator, computed_field
+from pydantic_core import PydanticUseDefault
 
-from douyin_download.config.constant import Colors
-
-
-@dataclass(frozen=True, slots=True)
-class AccountRoutine:
-    id: str
-    name: str
-    mark: str
+from .constant import Colors, URL_PATTERN, PROJECT_ROOT
 
 
-@dataclass(frozen=True, slots=True)
-class Account:
+class Account(BaseModel):
     mark: str
     url: str
-    earliest: str
-    latest: str
-    sec_user_id: str
-    earliest_date: Date
-    latest_date: Date
+    earliest: Date = Date(2016, 9, 20)
+    latest: Date = Date.today() - datetime.timedelta(days=1)
 
+    @field_validator("earliest", "latest", mode="before")
     @classmethod
-    def from_mapping(cls, data: dict[str, str]) -> "Account":
-        mark = data["mark"]
-        url = data["url"]
-        earliest = data["earliest"]
-        latest = data["latest"]
-        sec_user_id = cls._extract_sec_user_id(mark, url)
-        earliest_date, latest_date = cls._generate_date(earliest, latest)
-        return cls(
-            mark=mark,
-            url=url,
-            earliest=earliest,
-            latest=latest,
-            sec_user_id=sec_user_id,
-            earliest_date=earliest_date,
-            latest_date=latest_date,
+    def _parse_date(cls, value):
+        if value in (None, ""):
+            raise PydanticUseDefault()
+
+        for format in ("%Y-%m-%d", "%Y/%m/%d"):
+            try:
+                return Datetime.strptime(value, format).date()
+            except ValueError:
+                pass
+        raise ValueError(f"invalid date format: {value}")
+
+    @field_validator("url", mode="after")
+    @classmethod
+    def _match_pattern(cls, value):
+        match = re.fullmatch(URL_PATTERN, value)
+        if not match:
+            raise ValueError("invalid douyin url")
+        return match.group(1)
+
+    @model_validator(mode="after")
+    def _validate_dates(self):
+        if self.earliest > self.latest:
+            raise ValueError("earliest date cannot be later than latest date")
+        return self
+
+    @computed_field
+    @property
+    def sec_user_id(self) -> str:
+        return self.url.removeprefix("https://www.douyin.com/user/")
+
+
+class Settings(BaseModel):
+    save_folder: Path = PROJECT_ROOT
+    download_videos: bool = True
+    download_images: bool = True
+    download_horizontal_video: bool = True
+    download_vertical_video: bool = True
+    name_format: list[str] = ["create_time", "id", "type", "desc"]
+    split: str = "-"
+    date_format: str = "%Y-%m-%d"
+    add_account_mark_to_end_of_name: bool = False
+    file_description_max_length: int = 64
+    timeout: int = 60 * 5
+    concurrency: int = 5
+    illegal_char: set[str] = Field(default_factory=set)
+
+    model_config = {"extra": "ignore"}
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def _use_default(cls, value):
+        if value in (None, "", []):
+            raise PydanticUseDefault()
+        if value == 0 and not isinstance(value, bool):
+            raise PydanticUseDefault()
+        return value
+
+    def model_post_init(self, __context=None):
+        self.illegal_char = (
+            self._generate_default_illegal_char()
+            | {i for i in whitespace[1:]}
+            | self.illegal_char
         )
 
     @staticmethod
-    def _extract_sec_user_id(mark: str, url: str) -> str | None:
-        match_url = re.match(
-            r"https://www\.douyin\.com/user/([A-Za-z0-9_-]+)(\?.*)?", url
-        )
-        if match_url:
-            return match_url.group(1)
-        print(
-            f"[{Colors.RED}]参数 accounts 中账号 {mark} 的 url {url} 错误，提取 sec_user_id 失败！"
-        )
-        sys.exit()
-
-    @staticmethod
-    def _generate_date(earliest: str, latest: str) -> tuple[Date, Date]:
-        try:
-            earliest_date = Datetime.strptime(earliest, "%Y/%m/%d").date()
-        except ValueError:
-            if earliest:
-                print(f"[{Colors.YELLOW}]作品发布日期 {earliest} 无效，使用默认日期")
-            earliest_date = Date(2016, 9, 20)
-        try:
-            latest_date = Datetime.strptime(latest, "%Y/%m/%d").date()
-        except ValueError:
-            if latest:
-                print(f"[{Colors.YELLOW}]作品发布日期 {latest} 无效，使用默认日期")
-            latest_date = Date.today() - datetime.timedelta(days=1)
-        return earliest_date, latest_date
-
-
-@dataclass(frozen=True, slots=True)
-class Settings:
-    save_folder: Path
-    download_videos: bool
-    download_images: bool
-    download_horizontal_video: bool
-    download_vertical_video: bool
-    name_format: tuple[str, ...]
-    split: str
-    date_format: str
-    add_account_mark_to_end_of_name: bool
-    file_description_max_length: int
-    timeout: int
-    concurrency: int
-    illegal_char: set
+    def _generate_default_illegal_char():
+        """根据系统类型生成默认非法字符集合"""
+        if (now_system := system()) in ("Windows", "Darwin"):
+            return {
+                "/",
+                "\\",
+                "|",
+                "<",
+                ">",
+                "'",
+                '"',
+                "?",
+                ":",
+                "*",
+                "\x00",
+            }  # Windows 系统和 Mac 系统
+        elif now_system == "Linux":
+            return {"/", "\x00"}  # Linux 系统
+        else:
+            print(
+                f"[{Colors.YELLOW}]不受支持的操作系统类型，可能无法正常去除非法字符！"
+            )
+            return set()
