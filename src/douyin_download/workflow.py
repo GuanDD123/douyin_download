@@ -127,17 +127,17 @@ class DouyinDownload:
             self.dump_cache_data(self.settings, "settings")
             self.dump_cache_data(account, "account")
 
+            await self._download(num, account)
+            self.delete_cache_file()
+
             if num % sleep_long_after_deal_account_num == 0:
                 print(f"\n[{Colors.CYAN}]已处理 {num} 个账号")
                 self._sleep_random(20, 120)
                 sleep_long_after_deal_account_num = (
                     self._sleep_long_after_deal_account_num(accounts_num, num)
                 )
-            else:
+            elif num != accounts_num:
                 self._sleep_random(2, 7)
-
-            await self._download(num, account)
-            self.delete_cache_file()
 
     @staticmethod
     def _sleep_long_after_deal_account_num(accounts_num: int, is_deal_num: int = 0):
@@ -201,7 +201,7 @@ async def continue_download_from_cache() -> None:
 
     print(f"[{Colors.CYAN}]账号标识：{account.mark or '空'}")
     print(
-        f"[{Colors.CYAN}]最早发布日期：{account.earliest.strftime('%Y-%m-%d')}，"\
+        f"[{Colors.CYAN}]最早发布日期：{account.earliest.strftime('%Y-%m-%d')}，"
         f"最晚发布日期：{account.latest.strftime('%Y-%m-%d')}"
     )
     async with DownloadSessionManager(settings.timeout, cookies) as download_session:
