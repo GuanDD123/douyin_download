@@ -223,3 +223,7 @@ def main() -> None:
         elif mode == "4":
             asyncio.run(continue_download_from_cache())
     print(f"[{Colors.WHITE}]程序结束运行")
+
+
+if __name__ == "__main__":
+    main()

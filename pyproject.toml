@@ -6,5 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "douyin_download"
 version = "0.1.0"
 
+[project.scripts]
+douyin_download = "douyin_download.workflow:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["douyin_download*"]
