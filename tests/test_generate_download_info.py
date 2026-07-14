@@ -1,13 +1,10 @@
 from pathlib import Path, PosixPath
 import datetime
 
-from douyin_download.config.models import Settings, Account
+from douyin_download.config.settings import Settings, Account
+from douyin_download.models import AccountRoutine, DownloadInfo
 from douyin_download.parser.models import ItemInfo
-from douyin_download.parser import (
-    AccountRoutine,
-    DownloadInfo,
-    generate_download_info_list,
-)
+from douyin_download.parser import generate_download_info_list
 
 
 def test_generate_download_info_list():

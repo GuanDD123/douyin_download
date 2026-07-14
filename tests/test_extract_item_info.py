@@ -2,9 +2,9 @@ import json
 from pathlib import PosixPath
 import datetime
 
-from douyin_download.config.models import Settings, Account
+from douyin_download.config.settings import Settings, Account
+from douyin_download.models import AccountRoutine
 from douyin_download.parser import (
-    AccountRoutine,
     extract_account_info,
     extract_item_info_list,
 )
@@ -190,6 +190,8 @@ def test_extract_item_info_list():
         extract_account_info(accounts[0].mark, item_list[0], settings.illegal_char)
         == account_info
     )
-    for index, result in enumerate(extract_item_info_list(item_list, settings, accounts[0])):
+    for index, result in enumerate(
+        extract_item_info_list(item_list, settings, accounts[0])
+    ):
         print(result)
         assert result == item_info_list[index]

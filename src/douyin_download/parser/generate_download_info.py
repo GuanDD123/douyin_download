@@ -1,8 +1,9 @@
 from pathlib import Path
 
-from douyin_download.config.models import Settings
-from .models import ItemInfo, DownloadInfo
-from .tool import filter_name
+from douyin_download.config.settings import Settings
+from douyin_download.models import DownloadInfo
+from .models import ItemInfo
+from .utils import filter_name
 
 __all__ = ["generate_download_info_list"]
 

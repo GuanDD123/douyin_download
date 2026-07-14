@@ -11,16 +11,14 @@ import asyncio
 from collections.abc import Callable
 
 from douyin_download.config.constant import Colors, PROJECT_ROOT
-from douyin_download.config.models import Account, Settings
-from douyin_download.config.settings import load_settings
+from douyin_download.config.settings import load_settings, Account, Settings
 from douyin_download.config.cookies import input_save_cookies, CookiesManager
+from douyin_download.models import AccountRoutine, DownloadInfo
 from douyin_download.requester import (
     RequestItemInfo,
     SessionManager as RequestSessionManager,
 )
 from douyin_download.parser import (
-    AccountRoutine,
-    DownloadInfo,
     extract_account_info,
     extract_item_info_list,
     generate_download_info_list,

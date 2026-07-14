@@ -16,7 +16,7 @@ from pathlib import Path
 
 from douyin_download.config.constant import Colors, USER_AGENT, REFERER, RETRY_DOWNLOAD
 from douyin_download.config.cookies import CookiesManager
-from douyin_download.parser import DownloadInfo
+from douyin_download.models import DownloadInfo
 
 __all__ = ["SessionManager", "DownloadMedia"]
 

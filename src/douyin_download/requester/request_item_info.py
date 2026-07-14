@@ -7,9 +7,9 @@ import random
 import time
 
 from douyin_download.encrypt_params import get_a_bogus
-from douyin_download.tool import retry
+from douyin_download.utils import retry
 from douyin_download.config.constant import Colors, USER_AGENT, REFERER
-from douyin_download.config.models import Account
+from douyin_download.config.settings import Account
 from douyin_download.config.cookies import CookiesManager
 
 __all__ = ["SessionManager", "RequestItemInfo"]

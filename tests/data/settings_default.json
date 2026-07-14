@@ -7,5 +7,6 @@
             "latest": ""
         }
     ],
-    "save_folder": "/tmp"
+    "save_folder": "/tmp",
+    "illegal_char": ["@", "#"]
 }
