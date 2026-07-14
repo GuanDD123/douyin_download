@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from douyin_download.config.settings import Settings
 from douyin_download.models import DownloadInfo
 from .models import ItemInfo
@@ -8,13 +10,13 @@ class GenerateDownloadInfos:
     def __init__(self, settings: Settings):
         self.settings = settings
 
-    def run(self, mark: str, item_infos: list[ItemInfo]) -> list[DownloadInfo]:
+    def run(self, mark: str, item_infos: list[ItemInfo], save_folder: Path) -> list[DownloadInfo]:
         download_infos = [
-            self._generate_download_info(mark, item_info) for item_info in item_infos
+            self._generate_download_info(mark, item_info, save_folder) for item_info in item_infos
         ]
         return download_infos
 
-    def _generate_download_info(self, mark: str, item_info: ItemInfo):
+    def _generate_download_info(self, mark: str, item_info: ItemInfo, save_folder: Path):
         name_compnent = []
         for key in self.settings.name_format:
             if key == "create_time":
@@ -34,7 +36,7 @@ class GenerateDownloadInfos:
             name = f"{name} {self.settings.split} {mark}"
         name = filter_name(name, self.settings.illegal_char)
 
-        path = self.settings.save_folder / f"{name}{format}"
+        path = save_folder / f"{name}{format}"
         return DownloadInfo(
             url=item_info.url,
             path=path,
