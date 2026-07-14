@@ -51,7 +51,7 @@ def _extract_common_info(item: dict, settings: Settings):
 
 
 def _extract_image_infos(images: dict, result: dict):
-    result_list: list[ItemInfo] = []
+    results: list[ItemInfo] = []
     result["type"] = "image"
     result["share_url"] = f"https://www.douyin.com/note/{result['id']}"
     for index, image in enumerate(images):
@@ -59,8 +59,8 @@ def _extract_image_infos(images: dict, result: dict):
         result["url"] = _extract_value(image, "url_list[0]")
         result["width"] = _extract_value(image, "width")
         result["height"] = _extract_value(image, "height")
-        result_list.append(ItemInfo(**result, format=None, data_size=None))
-    return result_list
+        results.append(ItemInfo(**result, format=None, data_size=None))
+    return results
 
 
 def _extract_video_info(video: dict, result: dict, settings: Settings):
@@ -79,10 +79,10 @@ def _extract_video_info(video: dict, result: dict, settings: Settings):
 
 
 def extract_item_infos(
-    item_list: list[dict], settings: Settings, account: Account
+    items: list[dict], settings: Settings, account: Account
 ) -> list[ItemInfo]:
     item_infos = []
-    for item in item_list:
+    for item in items:
         result = _extract_common_info(item, settings)
         if (result["create_time"] > account.latest) or (
             result["create_time"] < account.earliest

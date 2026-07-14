@@ -13,7 +13,7 @@ from douyin_download.parser.models import ItemInfo
 
 def test_extract_item_infos():
     with open("tests/data/item_list.json", "r", encoding="utf-8") as f:
-        item_list = json.load(f)
+        items = json.load(f)
     account_info = AccountRoutine(
         id="1736848482507527", name="原神", mark="fake_mark  fwa*?81"
     )
@@ -187,11 +187,11 @@ def test_extract_item_infos():
     )
 
     assert (
-        extract_account_info(accounts[0].mark, item_list[0], settings.illegal_char)
+        extract_account_info(accounts[0].mark, items[0], settings.illegal_char)
         == account_info
     )
     for index, result in enumerate(
-        extract_item_infos(item_list, settings, accounts[0])
+        extract_item_infos(items, settings, accounts[0])
     ):
         print(result)
         assert result == item_infos[index]

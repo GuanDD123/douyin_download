@@ -132,11 +132,11 @@ class DouyinDownload:
         self.download_media.session.update_cookies()
         self.dump_cache_data(self.cookies, "cookies")
 
-        item_list = self.request_item_info.run(account)
-        self.dump_cache_data(item_list, "item_list")
+        items = self.request_item_info.run(account)
+        self.dump_cache_data(items, "items")
 
-        if item_list:
-            download_infos = self.parser(account, item_list, self.settings)
+        if items:
+            download_infos = self.parser(account, items, self.settings)
             self.dump_cache_data(download_infos, "download_infos")
 
             await self.download_media.run(download_infos)

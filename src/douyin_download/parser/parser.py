@@ -19,14 +19,14 @@ def _create_account_save_folder(
 
 
 def parse_to_download_infos(
-    account: Account, item_list: list[dict], settings: Settings
+    account: Account, items: list[dict], settings: Settings
 ) -> list[DownloadInfo]:
     print(f"[{Colors.CYAN}]\n开始提取账号信息")
     account_info = extract_account_info(
-        account.mark, item_list[0], settings.illegal_char
+        account.mark, items[0], settings.illegal_char
     )
     print(f"[{Colors.CYAN}]账号昵称：{account_info.name}；账号 ID：{account_info.id}")
-    item_infos = extract_item_infos(item_list, settings, account)
+    item_infos = extract_item_infos(items, settings, account)
     print(f"[{Colors.CYAN}]当前账号作品数量: {len(item_infos)}")
 
     account_save_folder = _create_account_save_folder(
