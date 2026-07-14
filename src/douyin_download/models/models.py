@@ -1,7 +1,14 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-__all__ = ["DownloadInfo"]
+__all__ = ["AccountRoutine", "DownloadInfo"]
+
+
+@dataclass(slots=True)
+class AccountRoutine:
+    id: str
+    name: str
+    mark: str
 
 
 @dataclass(slots=True)
