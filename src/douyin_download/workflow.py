@@ -6,23 +6,18 @@ from prompt_toolkit.shortcuts import choice
 from prompt_toolkit.filters import is_done
 from prompt_toolkit.styles import Style
 from typing import Any
-from pathlib import Path
 import asyncio
 from collections.abc import Callable
 
 from douyin_download.config.constant import Colors, PROJECT_ROOT
 from douyin_download.config.settings import load_settings, Account, Settings
 from douyin_download.config.cookies import input_save_cookies, CookiesManager
-from douyin_download.models import AccountRoutine, DownloadInfo
+from douyin_download.models import DownloadInfo
 from douyin_download.requester import (
     RequestItemInfo,
     SessionManager as RequestSessionManager,
 )
-from douyin_download.parser import (
-    extract_account_info,
-    extract_item_info_list,
-    generate_download_info_list,
-)
+from douyin_download.parser import parse_to_download_infos
 from douyin_download.downloader import (
     DownloadMedia,
     SessionManager as DownloadSessionManager,
@@ -67,42 +62,15 @@ def xdg_open_config():
         print(f"[{Colors.RED}]Error occurred while opening files: {e}")
 
 
-def _create_account_save_folder(
-    account_info: AccountRoutine, save_folder: Path
-) -> Path:
-    folder = save_folder / f"UID{account_info.id}_{account_info.mark}_发布作品"
-    folder.mkdir(exist_ok=True)
-    return folder
-
-
-def _parse(
-    account: Account, item_list: list[dict], settings: Settings
-) -> list[DownloadInfo]:
-    print(f"[{Colors.CYAN}]\n开始提取账号信息")
-    account_info = extract_account_info(
-        account.mark, item_list[0], settings.illegal_char
-    )
-    print(f"[{Colors.CYAN}]账号昵称：{account_info.name}；账号 ID：{account_info.id}")
-    item_info_list = extract_item_info_list(item_list, settings, account)
-    print(f"[{Colors.CYAN}]当前账号作品数量: {len(item_info_list)}")
-
-    account_save_folder = _create_account_save_folder(
-        account_info, settings.save_folder
-    )
-    download_info_list = generate_download_info_list(
-        account_info.mark, item_info_list, account_save_folder, settings
-    )
-
-    return download_info_list
-
-
 class DouyinDownload:
     def __init__(
         self,
         request_item_info: RequestItemInfo,
         download_media: DownloadMedia,
         cookies: CookiesManager,
-        parser: Callable[[Account, list[dict], Settings], list[DownloadInfo]] = _parse,
+        parser: Callable[
+            [Account, list[dict], Settings], list[DownloadInfo]
+        ] = parse_to_download_infos,
         dump_cache_data: Callable[[Any, str], None] = dump_cache_data,
         delete_cache_file: Callable[[], None] = delete_cache_file,
     ):
@@ -168,10 +136,10 @@ class DouyinDownload:
         self.dump_cache_data(item_list, "item_list")
 
         if item_list:
-            download_info_list = self.parser(account, item_list, self.settings)
-            self.dump_cache_data(download_info_list, "download_info_list")
+            download_infos = self.parser(account, item_list, self.settings)
+            self.dump_cache_data(download_infos, "download_infos")
 
-            await self.download_media.run(download_info_list)
+            await self.download_media.run(download_infos)
 
 
 async def run() -> None:
@@ -194,7 +162,7 @@ async def continue_download_from_cache() -> None:
     account: Account = load_cache_data("account")
     settings: Settings = load_cache_data("settings")
     cookies: CookiesManager = load_cache_data("cookies")
-    download_info_list: list[DownloadInfo] = load_cache_data("download_info_list")
+    download_infos: list[DownloadInfo] = load_cache_data("download_infos")
     cookies.update()
 
     print(f"[{Colors.CYAN}]账号标识：{account.mark or '空'}")
@@ -204,7 +172,7 @@ async def continue_download_from_cache() -> None:
     )
     async with DownloadSessionManager(settings.timeout, cookies) as download_session:
         downloader = DownloadMedia(settings.concurrency, download_session)
-        await downloader.run(download_info_list)
+        await downloader.run(download_infos)
     delete_cache_file()
 
 

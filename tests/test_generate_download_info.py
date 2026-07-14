@@ -4,14 +4,14 @@ import datetime
 from douyin_download.config.settings import Settings, Account
 from douyin_download.models import AccountRoutine, DownloadInfo
 from douyin_download.parser.models import ItemInfo
-from douyin_download.parser import generate_download_info_list
+from douyin_download.parser.generate_download_infos import generate_download_infos
 
 
-def test_generate_download_info_list():
+def test_generate_download_infos():
     account_info = AccountRoutine(
         id="1736848482507527", name="原神", mark="fake_mark  fwa*?81"
     )
-    item_info_list = (
+    item_infos = (
         ItemInfo(
             id="7637507783696387355",
             desc="#原神 《原神》至冬前瞻短片 - 风雪翳蔽的冻土",
@@ -153,7 +153,7 @@ def test_generate_download_info_list():
             data_size=38004018,
         ),
     )
-    download_info_list = (
+    download_infos = (
         DownloadInfo(
             url="https://v95-hzyy-thr-daily-web.douyinvod.com/7f8640c2f7cc70506c016ff13828b829/6a1ba841/video/tos/cn/tos-cn-ve-15/ogpfDwv4EmvaB6XAIjJ9ZAA8Q9i46Df3og2BAi/?a=6383&ch=10010&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C3&cv=1&br=2239&bt=2239&cs=0&ds=4&ft=piBgHyfWzuuD.5XONgjNvjp~fytLjrKGo0TuRkaCfuQYljVhWL6&mime_type=video_mp4&qs=0&rc=ZTczNGc1ZTs6NWk6Nmg7O0BpM2l1d2o5cmt4OjMzNGkzM0A1XzEyMzMxXi4xNDRjYmMzYSNhaXJfMmRzLXJhLS1kLTBzcw%3D%3D&btag=c0000e00018000&cquery=100o_101r_100B_100H_100K&dy_q=1780186606&feature_id=37f92ebd2877ae8e7eba995d406c5150&l=20260531081646E2D9C87F8CE035B2BD41",
             path=PosixPath(
@@ -273,8 +273,8 @@ def test_generate_download_info_list():
     )
 
     for index, download_info in enumerate(
-        generate_download_info_list(
-            account_info.mark, item_info_list, Path("/tmp/sub"), settings
+        generate_download_infos(
+            account_info.mark, item_infos, Path("/tmp/sub"), settings
         )
     ):
-        assert download_info == download_info_list[index]
+        assert download_info == download_infos[index]

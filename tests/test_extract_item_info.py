@@ -4,20 +4,20 @@ import datetime
 
 from douyin_download.config.settings import Settings, Account
 from douyin_download.models import AccountRoutine
-from douyin_download.parser import (
+from douyin_download.parser.extract_item_infos import (
     extract_account_info,
-    extract_item_info_list,
+    extract_item_infos,
 )
 from douyin_download.parser.models import ItemInfo
 
 
-def test_extract_item_info_list():
+def test_extract_item_infos():
     with open("tests/data/item_list.json", "r", encoding="utf-8") as f:
         item_list = json.load(f)
     account_info = AccountRoutine(
         id="1736848482507527", name="原神", mark="fake_mark  fwa*?81"
     )
-    item_info_list = (
+    item_infos = (
         ItemInfo(
             id="7637507783696387355",
             desc="#原神 《原神》至冬前瞻短片 - 风雪翳蔽的冻土",
@@ -191,7 +191,7 @@ def test_extract_item_info_list():
         == account_info
     )
     for index, result in enumerate(
-        extract_item_info_list(item_list, settings, accounts[0])
+        extract_item_infos(item_list, settings, accounts[0])
     ):
         print(result)
-        assert result == item_info_list[index]
+        assert result == item_infos[index]

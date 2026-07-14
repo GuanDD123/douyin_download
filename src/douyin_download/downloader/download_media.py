@@ -59,11 +59,11 @@ class DownloadMedia:
         self.sem = Semaphore(concurrency)
         self.session = session
 
-    async def run(self, info_list: list[DownloadInfo]) -> None:
+    async def run(self, infos: list[DownloadInfo]) -> None:
         print(f"[{Colors.CYAN}]\n开始下载作品文件\n")
         with self._progress_object() as progress:
             tasks = []
-            for info in info_list:
+            for info in infos:
                 if info.path.exists() and info.path.stat().st_size == info.data_size:
                     print(
                         f"[{Colors.CYAN}]{info.path.name} 文件已存在且大小匹配，跳过下载"

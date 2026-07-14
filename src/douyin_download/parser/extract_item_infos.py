@@ -5,8 +5,6 @@ from douyin_download.models import AccountRoutine
 from .models import ItemInfo
 from .utils import filter_name, clear_spaces
 
-__all__ = ["extract_account_info", "extract_item_info_list"]
-
 
 def _extract_value(data: dict, attribute_chain: str):
     """根据 attribute_chain 从 dict 中提取值"""
@@ -52,7 +50,7 @@ def _extract_common_info(item: dict, settings: Settings):
     return result
 
 
-def _extract_image_info_list(images: dict, result: dict):
+def _extract_image_infos(images: dict, result: dict):
     result_list: list[ItemInfo] = []
     result["type"] = "image"
     result["share_url"] = f"https://www.douyin.com/note/{result['id']}"
@@ -80,10 +78,10 @@ def _extract_video_info(video: dict, result: dict, settings: Settings):
     return ItemInfo(**result, index=None)
 
 
-def extract_item_info_list(
+def extract_item_infos(
     item_list: list[dict], settings: Settings, account: Account
 ) -> list[ItemInfo]:
-    item_info_list = []
+    item_infos = []
     for item in item_list:
         result = _extract_common_info(item, settings)
         if (result["create_time"] > account.latest) or (
@@ -92,10 +90,10 @@ def extract_item_info_list(
             continue
         if images := _extract_value(item, "images"):
             if settings.download_images:
-                if image_info_list := _extract_image_info_list(images, result):
-                    item_info_list.extend(image_info_list)
+                if image_infos := _extract_image_infos(images, result):
+                    item_infos.extend(image_infos)
         elif video := _extract_value(item, "video"):
             if settings.download_videos:
                 if video_info := _extract_video_info(video, result, settings):
-                    item_info_list.append(video_info)
-    return item_info_list
+                    item_infos.append(video_info)
+    return item_infos

@@ -5,7 +5,7 @@ from douyin_download.models import DownloadInfo
 from .models import ItemInfo
 from .utils import filter_name
 
-__all__ = ["generate_download_info_list"]
+__all__ = ["generate_download_infos"]
 
 
 def _generate_download_info(
@@ -38,11 +38,11 @@ def _generate_download_info(
     )
 
 
-def generate_download_info_list(
-    mark: str, item_info_list: list[ItemInfo], save_folder: Path, settings: Settings
+def generate_download_infos(
+    mark: str, item_infos: list[ItemInfo], save_folder: Path, settings: Settings
 ) -> list[DownloadInfo]:
-    download_info_list = [
+    download_infos = [
         _generate_download_info(mark, item_info, save_folder, settings)
-        for item_info in item_info_list
+        for item_info in item_infos
     ]
-    return download_info_list
+    return download_infos
