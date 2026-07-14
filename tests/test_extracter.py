@@ -4,14 +4,11 @@ import datetime
 
 from douyin_download.config.settings import Settings, Account
 from douyin_download.models import AccountInfo
-from douyin_download.parser.extract_item_infos import (
-    extract_account_info,
-    extract_item_infos,
-)
+from douyin_download.parser.extracter import Extracter
 from douyin_download.parser.models import ItemInfo
 
 
-def test_extract_item_infos():
+def test_extracter():
     with open("tests/data/item_list.json", "r", encoding="utf-8") as f:
         items = json.load(f)
     account_info = AccountInfo(
@@ -186,12 +183,13 @@ def test_extract_item_infos():
         ),
     )
 
+    extracter = Extracter(settings)
     assert (
-        extract_account_info(accounts[0].mark, items[0], settings.illegal_char)
+        extracter.extract_account_info(accounts[0].mark, items[0])
         == account_info
     )
     for index, result in enumerate(
-        extract_item_infos(items, settings, accounts[0])
+        extracter.extract_item_infos(items, accounts[0])
     ):
         print(result)
         assert result == item_infos[index]

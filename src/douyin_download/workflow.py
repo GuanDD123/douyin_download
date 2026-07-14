@@ -17,7 +17,7 @@ from douyin_download.requester import (
     RequestItems,
     SessionManager as RequestSessionManager,
 )
-from douyin_download.parser import parse_to_download_infos
+from douyin_download.parser import Parser
 from douyin_download.downloader import (
     DownloadMedia,
     SessionManager as DownloadSessionManager,
@@ -66,11 +66,9 @@ class DouyinDownload:
     def __init__(
         self,
         request_items: RequestItems,
+        parser: Parser,
         download_media: DownloadMedia,
         cookies: CookiesManager,
-        parser: Callable[
-            [Account, list[dict], Settings], list[DownloadInfo]
-        ] = parse_to_download_infos,
         dump_cache_data: Callable[[Any, str], None] = dump_cache_data,
         delete_cache_file: Callable[[], None] = delete_cache_file,
     ):
@@ -136,7 +134,7 @@ class DouyinDownload:
         self.dump_cache_data(items, "items")
 
         if items:
-            download_infos = self.parser(account, items, self.settings)
+            download_infos = self.parser.run(account, items)
             self.dump_cache_data(download_infos, "download_infos")
 
             await self.download_media.run(download_infos)
@@ -148,10 +146,11 @@ async def run() -> None:
     cookies = CookiesManager()
     request_session = RequestSessionManager(cookies)
     request_items = RequestItems(settings.timeout, cookies, request_session)
+    parser = Parser(settings)
     download_session = DownloadSessionManager(settings.timeout, cookies)
     download_media = DownloadMedia(settings.concurrency, download_session)
 
-    downloader = DouyinDownload(request_items, download_media, cookies)
+    downloader = DouyinDownload(request_items, parser, download_media, cookies)
 
     with request_session:
         async with download_session:
