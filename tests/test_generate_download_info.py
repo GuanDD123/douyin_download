@@ -2,13 +2,13 @@ from pathlib import Path, PosixPath
 import datetime
 
 from douyin_download.config.settings import Settings, Account
-from douyin_download.models import AccountRoutine, DownloadInfo
+from douyin_download.models import AccountInfo, DownloadInfo
 from douyin_download.parser.models import ItemInfo
 from douyin_download.parser.generate_download_infos import generate_download_infos
 
 
 def test_generate_download_infos():
-    account_info = AccountRoutine(
+    account_info = AccountInfo(
         id="1736848482507527", name="原神", mark="fake_mark  fwa*?81"
     )
     item_infos = (

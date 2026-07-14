@@ -12,7 +12,7 @@ from douyin_download.config.constant import Colors, USER_AGENT, REFERER
 from douyin_download.config.settings import Account
 from douyin_download.config.cookies import CookiesManager
 
-__all__ = ["SessionManager", "RequestItemInfo"]
+__all__ = ["SessionManager", "RequestItems"]
 
 POST_API = "https://www.douyin.com/aweme/v1/web/aweme/post/"
 
@@ -35,7 +35,7 @@ class SessionManager:
         self.session.cookies.update(self.cookies.cookies)
 
 
-class RequestItemInfo:
+class RequestItems:
     def __init__(self, timeout: int, cookies: CookiesManager, session: SessionManager):
         self.timeout = timeout
         self.cookies = cookies

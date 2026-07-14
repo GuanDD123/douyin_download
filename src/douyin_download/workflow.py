@@ -14,7 +14,7 @@ from douyin_download.config.settings import load_settings, Account, Settings
 from douyin_download.config.cookies import input_save_cookies, CookiesManager
 from douyin_download.models import DownloadInfo
 from douyin_download.requester import (
-    RequestItemInfo,
+    RequestItems,
     SessionManager as RequestSessionManager,
 )
 from douyin_download.parser import parse_to_download_infos
@@ -65,7 +65,7 @@ def xdg_open_config():
 class DouyinDownload:
     def __init__(
         self,
-        request_item_info: RequestItemInfo,
+        request_items: RequestItems,
         download_media: DownloadMedia,
         cookies: CookiesManager,
         parser: Callable[
@@ -75,7 +75,7 @@ class DouyinDownload:
         delete_cache_file: Callable[[], None] = delete_cache_file,
     ):
         self.accounts, self.settings = load_settings()
-        self.request_item_info = request_item_info
+        self.request_items = request_items
         self.download_media = download_media
         self.cookies = cookies
         self.parser = parser
@@ -128,11 +128,11 @@ class DouyinDownload:
             f"最晚发布日期：{account.latest.strftime('%Y-%m-%d')}"
         )
         self.cookies.update()
-        self.request_item_info.session.update_cookies()
+        self.request_items.session.update_cookies()
         self.download_media.session.update_cookies()
         self.dump_cache_data(self.cookies, "cookies")
 
-        items = self.request_item_info.run(account)
+        items = self.request_items.run(account)
         self.dump_cache_data(items, "items")
 
         if items:
@@ -147,11 +147,11 @@ async def run() -> None:
 
     cookies = CookiesManager()
     request_session = RequestSessionManager(cookies)
-    request_item_info = RequestItemInfo(settings.timeout, cookies, request_session)
+    request_items = RequestItems(settings.timeout, cookies, request_session)
     download_session = DownloadSessionManager(settings.timeout, cookies)
     download_media = DownloadMedia(settings.concurrency, download_session)
 
-    downloader = DouyinDownload(request_item_info, download_media, cookies)
+    downloader = DouyinDownload(request_items, download_media, cookies)
 
     with request_session:
         async with download_session:

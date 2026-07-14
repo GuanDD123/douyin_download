@@ -3,7 +3,7 @@ from pathlib import Path
 
 from douyin_download.config.constant import Colors
 from douyin_download.config.settings import Account, Settings
-from douyin_download.models import AccountRoutine, DownloadInfo
+from douyin_download.models import AccountInfo, DownloadInfo
 from .extract_item_infos import extract_account_info, extract_item_infos
 from .generate_download_infos import generate_download_infos
 
@@ -11,7 +11,7 @@ __all__ = ["parse_to_download_infos"]
 
 
 def _create_account_save_folder(
-    account_info: AccountRoutine, save_folder: Path
+    account_info: AccountInfo, save_folder: Path
 ) -> Path:
     folder = save_folder / f"UID{account_info.id}_{account_info.mark}_发布作品"
     folder.mkdir(exist_ok=True)

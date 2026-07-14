@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from pathlib import Path
 
-__all__ = ["AccountRoutine", "DownloadInfo"]
+__all__ = ["AccountInfo", "DownloadInfo"]
 
 
 @dataclass(slots=True)
-class AccountRoutine:
+class AccountInfo:
     id: str
     name: str
     mark: str

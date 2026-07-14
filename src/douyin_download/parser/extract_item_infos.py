@@ -1,7 +1,7 @@
 from datetime import date as Date
 
 from douyin_download.config.settings import Settings, Account
-from douyin_download.models import AccountRoutine
+from douyin_download.models import AccountInfo
 from .models import ItemInfo
 from .utils import filter_name, clear_spaces
 
@@ -24,7 +24,7 @@ def _extract_value(data: dict, attribute_chain: str):
 
 def extract_account_info(
     mark: str, item: dict, illegal_char: set[str]
-) -> AccountRoutine:
+) -> AccountInfo:
     """提取账号 id、昵称，规范化账号 mark"""
     id = _extract_value(item, "author.uid")
     name = filter_name(
@@ -33,7 +33,7 @@ def extract_account_info(
         default="无效账号昵称",
     )
     mark = filter_name(mark, illegal_char=illegal_char, default=name)
-    return AccountRoutine(id=id, name=name, mark=mark)
+    return AccountInfo(id=id, name=name, mark=mark)
 
 
 def _extract_common_info(item: dict, settings: Settings):

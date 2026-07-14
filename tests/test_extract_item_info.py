@@ -3,7 +3,7 @@ from pathlib import PosixPath
 import datetime
 
 from douyin_download.config.settings import Settings, Account
-from douyin_download.models import AccountRoutine
+from douyin_download.models import AccountInfo
 from douyin_download.parser.extract_item_infos import (
     extract_account_info,
     extract_item_infos,
@@ -14,7 +14,7 @@ from douyin_download.parser.models import ItemInfo
 def test_extract_item_infos():
     with open("tests/data/item_list.json", "r", encoding="utf-8") as f:
         items = json.load(f)
-    account_info = AccountRoutine(
+    account_info = AccountInfo(
         id="1736848482507527", name="原神", mark="fake_mark  fwa*?81"
     )
     item_infos = (
