@@ -65,6 +65,8 @@ def xdg_open_config():
 class DouyinDownload:
     def __init__(
         self,
+        accounts: list[Account],
+        settings: Settings,
         request_items: RequestItems,
         parser: Parser,
         download_media: DownloadMedia,
@@ -72,7 +74,8 @@ class DouyinDownload:
         dump_cache_data: Callable[[Any, str], None] = dump_cache_data,
         delete_cache_file: Callable[[], None] = delete_cache_file,
     ):
-        self.accounts, self.settings = load_settings()
+        self.accounts = accounts
+        self.settings = settings
         self.request_items = request_items
         self.download_media = download_media
         self.cookies = cookies
@@ -141,7 +144,7 @@ class DouyinDownload:
 
 
 async def run() -> None:
-    _, settings = load_settings()
+    accounts, settings = load_settings()
 
     cookies = CookiesManager()
     request_session = RequestSessionManager(cookies)
@@ -150,7 +153,9 @@ async def run() -> None:
     download_session = DownloadSessionManager(settings.timeout, cookies)
     download_media = DownloadMedia(settings.concurrency, download_session)
 
-    downloader = DouyinDownload(request_items, parser, download_media, cookies)
+    downloader = DouyinDownload(
+        accounts, settings, request_items, parser, download_media, cookies
+    )
 
     with request_session:
         async with download_session:
