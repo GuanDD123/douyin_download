@@ -93,9 +93,9 @@ class Extracter:
                 parts = attribute.split("[", 1)
                 attribute = parts[0]
                 index = int(parts[1].split("]", 1)[0])
-                data = data[attribute][index]
+                data = data.get(attribute)[index]
             else:
-                data = data[attribute]
+                data = data.get(attribute)
             if not data:
                 return None
         return data
