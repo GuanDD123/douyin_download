@@ -3,8 +3,21 @@ requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "douyin_download"
+name = "douyindownload"
 version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.14.1",
+    "mini-racer>=0.14.1",
+    "prompt_toolkit>=3.0.52",
+    "pydantic>=2.13.4",
+    "pydantic-core>=2.46.4",
+    "requests>=2.34.2",
+    "rich>=15.0.0",
+    "yarl>=1.24.5",
+]
 
 [project.scripts]
 douyin_download = "douyin_download.workflow:main"
@@ -15,3 +28,12 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["douyin_download*"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

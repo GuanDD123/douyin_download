@@ -1,8 +1,8 @@
-aiohttp==3.13.0
-mini_racer==0.14.1
-prompt_toolkit==3.0.52
-pydantic==2.13.4
-pydantic_core==2.47.0
-Requests==2.34.2
-rich==15.0.0
-yarl==1.22.0
+aiohttp>=3.14.1
+mini-racer>=0.14.1
+prompt_toolkit>=3.0.52
+pydantic>=2.13.4
+pydantic-core>=2.46.4
+requests>=2.34.2
+rich>=15.0.0
+yarl>=1.24.5
