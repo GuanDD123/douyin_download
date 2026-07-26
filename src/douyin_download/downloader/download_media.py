@@ -3,7 +3,6 @@ from asyncio import Semaphore
 from collections.abc import AsyncIterator, Callable
 from pathlib import Path
 
-import aiofiles
 from aiohttp import ClientResponse, ClientSession, ClientTimeout
 from rich import print
 from rich.progress import (
@@ -136,9 +135,9 @@ class DownloadMedia:
     async def _write_file(
         path: Path, chunk_iter: AsyncIterator[bytes], on_progress: Callable
     ):
-        async with aiofiles.open(path, "wb") as f:
+        with open(path, "wb") as f:  # noqa: ASYNC230
             async for chunk in chunk_iter:
-                await f.write(chunk)
+                f.write(chunk)
                 on_progress(len(chunk))
 
     @staticmethod
