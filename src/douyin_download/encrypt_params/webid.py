@@ -1,9 +1,11 @@
-from requests import exceptions
 from json import dumps
+
+from requests import exceptions
 from rich import print
 
-from .general import send_post
 from douyin_download.config.constant import USER_AGENT, Colors
+
+from .general import send_post
 
 
 def get_web_id(user_agent: str = USER_AGENT):

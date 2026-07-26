@@ -1,24 +1,27 @@
-import json
-from json.decoder import JSONDecodeError
-from rich import print
-from pathlib import Path
-import sys
-import re
-from datetime import date as Date, datetime as Datetime
 import datetime
+import json
+import re
+import sys
+from datetime import UTC
+from datetime import date as Date
+from datetime import datetime as Datetime
+from json.decoder import JSONDecodeError
+from pathlib import Path
 from platform import system
 from string import whitespace
-from pydantic import BaseModel, Field, field_validator, model_validator, computed_field
-from pydantic_core import PydanticUseDefault
 
-from .constant import Colors, PROJECT_ROOT, ENCODE, URL_PATTERN
+from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
+from pydantic_core import PydanticUseDefault
+from rich import print
+
+from .constant import ENCODE, PROJECT_ROOT, URL_PATTERN, Colors
 
 
 class Account(BaseModel):
     mark: str
     url: str
     earliest: Date = Date(2016, 9, 20)
-    latest: Date = Date.today() - datetime.timedelta(days=1)
+    latest: Date = Datetime.now(tz=UTC).date() - datetime.timedelta(days=1)
 
     @field_validator("earliest", "latest", mode="before")
     @classmethod
@@ -28,7 +31,7 @@ class Account(BaseModel):
 
         for format in ("%Y-%m-%d", "%Y/%m/%d"):
             try:
-                return Datetime.strptime(value, format).date()
+                return Datetime.strptime(value, format).date()  # noqa: DTZ007
             except ValueError:
                 pass
         raise ValueError(f"invalid date format: {value}")
@@ -79,7 +82,7 @@ class Settings(BaseModel):
             raise PydanticUseDefault()
         return value
 
-    def model_post_init(self, __context=None):
+    def model_post_init(self, __context=None, /):
         self.illegal_char = (
             self._generate_default_illegal_char()
             | {i for i in whitespace[1:]}
@@ -119,8 +122,10 @@ def _select_settings_path():
 
 
 def load_settings(
-    filepath: Path = _select_settings_path(),
+    filepath: Path | None = None,
 ) -> tuple[list[Account], Settings]:
+    if filepath is None:
+        filepath = _select_settings_path()
     try:
         with open(filepath, encoding=ENCODE) as f:
             data = json.load(f)

@@ -1,8 +1,8 @@
+import datetime
 import json
 from pathlib import PosixPath
-import datetime
 
-from douyin_download.config.settings import Settings, Account
+from douyin_download.config.settings import Account, Settings
 from douyin_download.models import AccountInfo
 from douyin_download.parser.extracter import Extracter
 from douyin_download.parser.models import ItemInfo

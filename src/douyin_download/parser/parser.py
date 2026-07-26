@@ -1,9 +1,11 @@
-from rich import print
 from pathlib import Path
+
+from rich import print
 
 from douyin_download.config.constant import Colors
 from douyin_download.config.settings import Account, Settings
 from douyin_download.models import AccountInfo, DownloadInfo
+
 from .extracter import Extracter
 from .generate_download_infos import GenerateDownloadInfos
 

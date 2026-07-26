@@ -1,9 +1,11 @@
-from datetime import date as Date
+from datetime import UTC
+from datetime import datetime as Datetime
 
-from douyin_download.config.settings import Settings, Account
+from douyin_download.config.settings import Account, Settings
 from douyin_download.models import AccountInfo
+
 from .models import ItemInfo
-from .utils import filter_name, clear_spaces
+from .utils import clear_spaces, filter_name
 
 
 class Extracter:
@@ -30,13 +32,16 @@ class Extracter:
             ):
                 continue
             if images := self._extract_value(item, "images"):
-                if self.settings.download_images:
-                    if image_infos := self._extract_image_infos(images, result):
-                        item_infos.extend(image_infos)
-            elif video := self._extract_value(item, "video"):
-                if self.settings.download_videos:
-                    if video_info := self._extract_video_info(video, result):
-                        item_infos.append(video_info)
+                if self.settings.download_images and (
+                    image_infos := self._extract_image_infos(images, result)
+                ):
+                    item_infos.extend(image_infos)
+            elif (
+                (video := self._extract_value(item, "video"))
+                and self.settings.download_videos
+                and (video_info := self._extract_video_info(video, result))
+            ):
+                item_infos.append(video_info)
         return item_infos
 
     def _extract_common_info(self, item: dict):
@@ -49,7 +54,9 @@ class Extracter:
         else:
             result["desc"] = "作品描述为空"
         result["create_timestamp"] = self._extract_value(item, "create_time")
-        result["create_time"] = Date.fromtimestamp(int(result["create_timestamp"]))
+        result["create_time"] = Datetime.fromtimestamp(
+            int(result["create_timestamp"]), tz=UTC
+        ).date()
         return result
 
     def _extract_image_infos(self, images: dict, result: dict):

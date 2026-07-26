@@ -1,24 +1,26 @@
+import asyncio
+from asyncio import Semaphore
+from collections.abc import AsyncIterator, Callable
+from pathlib import Path
+
+import aiofiles
+from aiohttp import ClientResponse, ClientSession, ClientTimeout
 from rich import print
 from rich.progress import (
-    SpinnerColumn,
     BarColumn,
     DownloadColumn,
     Progress,
+    SpinnerColumn,
     TextColumn,
     TimeRemainingColumn,
 )
 from yarl import URL
-import asyncio
-from asyncio import Semaphore
-from aiohttp import ClientResponse, ClientSession, ClientTimeout
-from collections.abc import Callable, AsyncIterator
-from pathlib import Path
 
-from douyin_download.config.constant import Colors, USER_AGENT, REFERER, RETRY_DOWNLOAD
+from douyin_download.config.constant import REFERER, RETRY_DOWNLOAD, USER_AGENT, Colors
 from douyin_download.config.cookies import CookiesManager
 from douyin_download.models import DownloadInfo
 
-__all__ = ["SessionManager", "DownloadMedia"]
+__all__ = ["DownloadMedia", "SessionManager"]
 
 
 def retry_async(function):
@@ -126,7 +128,7 @@ class DownloadMedia:
 
                     self._show_media_info(info)
                     return True
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 print(f"[{Colors.RED}]下载失败: {info.path.name} - {e}")
                 return False
 
@@ -134,9 +136,9 @@ class DownloadMedia:
     async def _write_file(
         path: Path, chunk_iter: AsyncIterator[bytes], on_progress: Callable
     ):
-        with open(path, "wb") as f:
+        async with aiofiles.open(path, "wb") as f:
             async for chunk in chunk_iter:
-                f.write(chunk)
+                await f.write(chunk)
                 on_progress(len(chunk))
 
     @staticmethod

@@ -1,6 +1,7 @@
-from urllib import parse
-from py_mini_racer import MiniRacer
 from pathlib import Path
+from urllib import parse
+
+from py_mini_racer import MiniRacer
 
 from douyin_download.config.constant import USER_AGENT
 

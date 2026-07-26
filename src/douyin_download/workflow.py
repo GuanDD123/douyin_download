@@ -1,28 +1,33 @@
+import asyncio
+import random
 import subprocess
 import time
-import random
-from rich import print
-from prompt_toolkit.shortcuts import choice
-from prompt_toolkit.filters import is_done
-from prompt_toolkit.styles import Style
-from typing import Any
-import asyncio
 from collections.abc import Callable
+from typing import Any
 
-from douyin_download.config.constant import Colors, PROJECT_ROOT
-from douyin_download.config.settings import load_settings, Account, Settings
-from douyin_download.config.cookies import input_save_cookies, CookiesManager
-from douyin_download.models import DownloadInfo
-from douyin_download.requester import (
-    RequestItems,
-    SessionManager as RequestSessionManager,
-)
-from douyin_download.parser import Parser
+from prompt_toolkit.filters import is_done
+from prompt_toolkit.shortcuts import choice
+from prompt_toolkit.styles import Style
+from rich import print
+
+from douyin_download.cache import delete_cache_file, dump_cache_data, load_cache_data
+from douyin_download.config.constant import PROJECT_ROOT, Colors
+from douyin_download.config.cookies import CookiesManager, input_save_cookies
+from douyin_download.config.settings import Account, Settings, load_settings
 from douyin_download.downloader import (
     DownloadMedia,
+)
+from douyin_download.downloader import (
     SessionManager as DownloadSessionManager,
 )
-from douyin_download.cache import dump_cache_data, load_cache_data, delete_cache_file
+from douyin_download.models import DownloadInfo
+from douyin_download.parser import Parser
+from douyin_download.requester import (
+    RequestItems,
+)
+from douyin_download.requester import (
+    SessionManager as RequestSessionManager,
+)
 
 
 def run_menu():
@@ -56,9 +61,9 @@ def xdg_open_config():
     if not (filepath := PROJECT_ROOT / "settings_mine.json").exists():
         filepath = PROJECT_ROOT / "settings_default.json"
     try:
-        subprocess.run(["xdg-open", str(filepath)])
-        subprocess.run(["xdg-open", str(PROJECT_ROOT / "已下载账号信息.json")])
-    except Exception as e:
+        subprocess.run(["xdg-open", str(filepath)], check=True)
+        subprocess.run(["xdg-open", str(PROJECT_ROOT / "已下载账号信息.json")], check=True)
+    except Exception as e:  # noqa: BLE001
         print(f"[{Colors.RED}]Error occurred while opening files: {e}")
 
 

@@ -1,5 +1,5 @@
-from time import time
 from random import random
+from time import time
 
 """代码参考: https://github.com/Johnserf-Seed/TikTokDownload/blob/main/Util/Cookies.py"""
 

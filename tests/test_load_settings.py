@@ -1,5 +1,5 @@
-from pathlib import Path
 import datetime
+from pathlib import Path
 
 from douyin_download.config.settings import load_settings
 

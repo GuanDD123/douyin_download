@@ -1,10 +1,9 @@
+from json import dumps
 from random import randint
 from string import ascii_letters, digits
-from json import dumps
 from time import time
 
-from .general import send_post, extract_value
-from .general import HEADERS
+from .general import HEADERS, extract_value, send_post
 
 __all__ = ["get_real_ms_token"]
 

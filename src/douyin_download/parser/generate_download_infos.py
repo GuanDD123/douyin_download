@@ -2,6 +2,7 @@ from pathlib import Path
 
 from douyin_download.config.settings import Settings
 from douyin_download.models import DownloadInfo
+
 from .models import ItemInfo
 from .utils import filter_name
 

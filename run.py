@@ -5,6 +5,5 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 from douyin_download.workflow import main
 
-
 if __name__ == "__main__":
     main()

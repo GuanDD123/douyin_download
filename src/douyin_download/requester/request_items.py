@@ -1,18 +1,21 @@
+import random
+import time
+from datetime import UTC
 from datetime import date as Date
+from datetime import datetime as Datetime
 from urllib.parse import urlencode
+
 from requests import Session
 from rich import print
 from rich.progress import BarColumn, Progress, TextColumn, TimeElapsedColumn
-import random
-import time
 
+from douyin_download.config.constant import REFERER, USER_AGENT, Colors
+from douyin_download.config.cookies import CookiesManager
+from douyin_download.config.settings import Account
 from douyin_download.encrypt_params import get_a_bogus
 from douyin_download.utils import retry
-from douyin_download.config.constant import Colors, USER_AGENT, REFERER
-from douyin_download.config.settings import Account
-from douyin_download.config.cookies import CookiesManager
 
-__all__ = ["SessionManager", "RequestItems"]
+__all__ = ["RequestItems", "SessionManager"]
 
 POST_API = "https://www.douyin.com/aweme/v1/web/aweme/post/"
 
@@ -108,7 +111,7 @@ class RequestItems:
                     f"[{Colors.YELLOW}]该账号为私密账号，需要使用登录后的 Cookie，且登录的账号需要关注该私密账号"
                 )
                 return None
-            has_more = True if data["has_more"] else False
+            has_more = bool(data["has_more"])
             return items_page, data["max_cursor"], has_more
         except KeyError:
             print(f"[{Colors.YELLOW}]账号作品数据响应内容异常: {data}")
@@ -127,16 +130,14 @@ class RequestItems:
                 POST_API, params=params, timeout=self.timeout
             )
             time.sleep(random.uniform(1, 5))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"[{Colors.YELLOW}]请求 {POST_API}?{urlencode(params)} 出错: {e}")
             return None
         try:
             return response.json()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"[{Colors.YELLOW}]响应内容出错: {e}")
             return None
 
     def _early_stop_by_date(self, earliest: Date, cursor: int):
-        if Date.fromtimestamp(cursor / 1000) < earliest:
-            return True
-        return False
+        return Datetime.fromtimestamp(cursor / 1000, tz=UTC).date() < earliest

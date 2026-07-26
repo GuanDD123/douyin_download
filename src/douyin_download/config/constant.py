@@ -1,6 +1,6 @@
-from pathlib import Path
 import os
 import re
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parents[3]
 ENCODE = "UTF-8-SIG" if os.name == "nt" else "UTF-8"

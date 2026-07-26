@@ -1,7 +1,6 @@
 from json import dumps
 
-from .general import send_post, extract_value
-from .general import HEADERS
+from .general import HEADERS, extract_value, send_post
 
 __all__ = ["get_tt_wid"]
 

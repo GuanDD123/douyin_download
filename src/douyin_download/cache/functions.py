@@ -2,7 +2,7 @@ import shelve
 from pathlib import Path
 from typing import Any
 
-__all__ = ["dump_cache_data", "load_cache_data", "delete_cache_file"]
+__all__ = ["delete_cache_file", "dump_cache_data", "load_cache_data"]
 
 cache_file = Path(__file__).resolve().with_name("cache")
 

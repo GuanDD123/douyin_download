@@ -1,9 +1,8 @@
-from requests import post, exceptions
+from requests import exceptions, post
 from rich import print
 
 from douyin_download.config.constant import USER_AGENT, Colors
 from douyin_download.utils import retry
-
 
 HEADERS = {"User-Agent": USER_AGENT}
 

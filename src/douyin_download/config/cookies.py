@@ -1,9 +1,11 @@
-import re
-from rich import print
 import json
+import re
 
-from .constant import Colors, PROJECT_ROOT, ENCODE
+from rich import print
+
 from douyin_download.encrypt_params import get_real_ms_token, get_tt_wid
+
+from .constant import ENCODE, PROJECT_ROOT, Colors
 
 
 def _generate_dict(cookies_str: str):

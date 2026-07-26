@@ -1,5 +1,5 @@
-from datetime import date as Date
 from dataclasses import dataclass
+from datetime import date as Date
 
 
 @dataclass(slots=True)
