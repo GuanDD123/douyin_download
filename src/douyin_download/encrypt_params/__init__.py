@@ -1,3 +1,3 @@
 from .js_port import *
-from .msToken import *
-from .ttWid import *
+from .ms_token import *
+from .tt_wid import *
