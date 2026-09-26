@@ -11,7 +11,7 @@ from prompt_toolkit.styles import Style
 from rich import print
 
 from douyin_download.cache import delete_cache_file, dump_cache_data, load_cache_data
-from douyin_download.config.constant import PROJECT_ROOT, Colors
+from douyin_download.config.constant import PROJECT_ROOT, USER_AGENT, Colors
 from douyin_download.config.cookies import CookiesManager, input_save_cookies
 from douyin_download.config.settings import Account, Settings, load_settings
 from douyin_download.downloader import (
@@ -20,6 +20,7 @@ from douyin_download.downloader import (
 from douyin_download.downloader import (
     SessionManager as DownloadSessionManager,
 )
+from douyin_download.encrypt_params import ABogus
 from douyin_download.models import DownloadInfo
 from douyin_download.parser import Parser
 from douyin_download.requester import (
@@ -62,7 +63,9 @@ def xdg_open_config():
         filepath = PROJECT_ROOT / "settings_default.json"
     try:
         subprocess.run(["xdg-open", str(filepath)], check=True)
-        subprocess.run(["xdg-open", str(PROJECT_ROOT / "已下载账号信息.json")], check=True)
+        subprocess.run(
+            ["xdg-open", str(PROJECT_ROOT / "已下载账号信息.json")], check=True
+        )
     except Exception as e:  # noqa: BLE001
         print(f"[{Colors.RED}]Error occurred while opening files: {e}")
 
@@ -152,8 +155,9 @@ async def run() -> None:
     accounts, settings = load_settings()
 
     cookies = CookiesManager()
+    abogus = ABogus(USER_AGENT)
     request_session = RequestSessionManager(cookies)
-    request_items = RequestItems(settings.timeout, cookies, request_session)
+    request_items = RequestItems(settings.timeout, cookies, request_session, abogus)
     parser = Parser(settings)
     download_session = DownloadSessionManager(settings.timeout, cookies)
     download_media = DownloadMedia(settings.concurrency, download_session)
