@@ -29,7 +29,7 @@ class SessionManager:
 
     def __enter__(self):
         self.session = Session()
-        self.session.headers.update({"User-Agent": USER_AGENT, "Referer": REFERER})
+        self.session.headers.update({"User-Agent": USER_AGENT})
         self.session.cookies.update(self.cookies.cookies)
         return self
 
@@ -87,7 +87,7 @@ class RequestItems:
 
     def run(self, account: Account) -> list[dict]:
         """获取账号作品数据并返回"""
-        self.session.session.headers["Referer"] += f"user/{account.sec_user_id}"
+        self.session.session.headers["Referer"] = f"{REFERER}user/{account.sec_user_id}"
         items = []
         with self._progress_object() as progress:
             progress.add_task("正在获取账号主页数据", total=None)
